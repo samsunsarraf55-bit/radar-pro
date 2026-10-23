@@ -9,6 +9,8 @@ const CORS_HEADERS = {
 };
 
 const HTML_URLS = [
+  "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/radar-pro-latest.html",
+  "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/radar-pro-latest.html",
   "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/altin-fiyatlari.html",
   "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/altin-fiyatlari.html",
 ];
@@ -173,7 +175,7 @@ export default {
         });
       }
       return new Response(
-        "<!DOCTYPE html><html><body><h1>RADAR PRO</h1><p>altin-fiyatlari.html GitHub'a yukleyin.</p><p><a href=/api/health>health</a></p></body></html>",
+        "<!DOCTYPE html><html><body><h1>RADAR PRO</h1><p>HTML yuklenemedi.</p><p><a href=/api/health>health</a></p></body></html>",
         { headers: Object.assign({ "Content-Type": "text/html; charset=utf-8" }, CORS_HEADERS) }
       );
     }
