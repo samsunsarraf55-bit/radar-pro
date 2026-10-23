@@ -1,18 +1,17 @@
 # RADAR PRO
 
-Canlı altın ve döviz fiyat terminali — çoklu kaynak, karşılaştırma, arbitraj.
+Canli altin ve doviz terminali.
 
-## Çalıştırma
+## Tek link (Cloudflare Worker)
 
-```bash
-cd radar-proxy
-node server.js
+1. Bu repoya `altin-fiyatlari.html` dosyasini yukleyin (Add file → Upload).
+2. Cloudflare Worker kodunu (`radar-proxy/worker.js`) Edit code ile Deploy edin.
+3. Acin: https://fancy-scene-36a5.samsunsarraf55.workers.dev
+
+Worker, HTML dosyasini GitHub raw / jsDelivr uzerinden sunar; `/api/*` proxy olarak calisir.
+
+## Proxy URL (yerel HTML)
+
 ```
-
-Tarayıcı: http://127.0.0.1:8787/
-
-## Kaynaklar
-
-Güneş, Kaptan, Solis, SAR, Altınköşe, İlkay, Vizyon
-
-Vizyon fiyatları: https://fiyat.vizyonkuyumcu.com.tr/ (Haremaltin socket)
+https://fancy-scene-36a5.samsunsarraf55.workers.dev
+```
