@@ -1256,6 +1256,56 @@
     #firmSetModal .fs-actions button.primary{background:var(--teal,#0d9488);color:#fff;border-color:transparent}
     .firm-logo, .firm-logo-badge{cursor:pointer}
 
+  
+    #firmSetModal .fs-row{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}
+    #firmSetModal label{font-size:12px;font-weight:600;min-width:80px}
+    #firmSetModal input[type=text]{flex:1;min-width:120px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--bg,#fff);color:var(--text);font-size:12px}
+    #firmSetModal .fs-list{margin-top:8px;border:1px solid var(--border);border-radius:10px;max-height:240px;overflow:auto}
+    #firmSetModal .fs-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);font-size:12px}
+    #firmSetModal .fs-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+    #firmSetModal .fs-actions button{padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-weight:600;font-size:12px}
+    #firmSetModal .fs-actions button.primary{background:#0d9488;color:#fff;border-color:transparent}
+    .firm-head{cursor:pointer}
+
+  
+    /* Arbitraj / karşılaştırma: kaydırınca firma başlıkları sabit */
+    .cmp-matrix-wrap{
+      overflow:auto;
+      max-height:min(70vh, 640px);
+      border:1px solid var(--border);
+      border-radius:14px;
+      -webkit-overflow-scrolling:touch;
+    }
+    .cmp-matrix{
+      border-collapse:separate;
+      border-spacing:0;
+      width:max-content;
+      min-width:100%;
+    }
+    .cmp-matrix thead th{
+      position:sticky;
+      top:0;
+      z-index:4;
+      background:var(--card,#fff) !important;
+      box-shadow:0 1px 0 var(--border);
+      vertical-align:bottom;
+    }
+    .cmp-matrix th.sticky-col,
+    .cmp-matrix td.sticky-col{
+      position:sticky;
+      left:0;
+      z-index:3;
+      background:var(--card,#fff) !important;
+    }
+    .cmp-matrix thead th.sticky-col{
+      z-index:5;
+    }
+    [data-theme="dark"] .cmp-matrix thead th,
+    [data-theme="dark"] .cmp-matrix th.sticky-col,
+    [data-theme="dark"] .cmp-matrix td.sticky-col{
+      background:var(--card,#1a1a1a) !important;
+    }
+
   </style>
 </head>
 <body>
@@ -1416,6 +1466,35 @@
     </div>
   </div>
 
+  
+  <div class="modal-bg" id="firmSetModal">
+    <div class="modal" style="max-width:420px">
+      <button type="button" class="close" id="firmSetClose">✕</button>
+      <h2 id="firmSetTitle">Sütun ayarları</h2>
+      <div class="fs-row"><label>Firma adı</label><input type="text" id="fsFirmName" /></div>
+      <div class="fs-row"><label>Sıralama</label>
+        <select id="fsSort" style="flex:1;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text)">
+          <option value="default">Varsayılan</option>
+          <option value="name">İsme göre A-Z</option>
+          <option value="alis">Alış (yüksek→düşük)</option>
+          <option value="satis">Satış (yüksek→düşük)</option>
+          <option value="makas">Makas (dar→geniş)</option>
+        </select>
+      </div>
+      <div style="font-size:12px;font-weight:700;margin-top:12px">Ürünler</div>
+      <div class="fs-list" id="fsProductList"></div>
+      <div class="fs-row" style="margin-top:10px">
+        <input type="text" id="fsAddName" placeholder="Yeni ürün adı" />
+        <button type="button" id="fsAddBtn">Ekle</button>
+      </div>
+      <div class="fs-actions">
+        <button type="button" class="primary" id="fsSave">Kaydet</button>
+        <button type="button" id="fsReset">Sıfırla</button>
+        <button type="button" id="fsCancel">İptal</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-bg" id="histModal">
     <div class="modal">
       <button class="close" id="histClose">✕</button>
@@ -1479,7 +1558,7 @@ var FIRM_LOGOS = {
   solis: "https://solisdoviz.com.tr/assets/fav.png",
   sar: "https://www.google.com/s2/favicons?domain=sardoviz.com&sz=64",
   altinkose: "https://www.google.com/s2/favicons?domain=altinkose.com.tr&sz=64",
-  ilkay: "https://www.google.com/s2/favicons?domain=ilkaydoviz.com&sz=64",
+  ilkay: "https://www.ilkaydoviz.com/images/favicon.png",
   vizyon: "https://www.google.com/s2/favicons?domain=vizyonkuyumcu.com.tr&sz=64"
 };
 function firmLogo(key){
@@ -1667,13 +1746,13 @@ function parseKaptan(d){
 function parseGunes(d){
   meta.gunes={time:d.sonGuncelleme};
   var u=d.urunler||{}, map={ayar_24k:"24 AYAR",ayar_22k:"22 AYAR",bilezik:"22 AYAR",ceyrek:"ÇEYREK",yarim:"YARIM",ziynet:"ZİYNET LİRA",ata_lira:"ATA LİRA"};
-  var rows=Object.keys(map).filter(function(k){return u[k];}).map(function(k){ return {name:map[k],kod:k,alis:u[k].alis,satis:u[k].satis,kind:"altin"}; });
+  var rows=Object.keys(map).filter(function(k){return u[k] && k!=="bilezik";}).map(function(k){ return {name:map[k],kod:k,alis:u[k].alis,satis:u[k].satis,kind:"altin"}; });
   /* Kaynak tablodaki AU satırı → HAS (hesaplamaTemeli) */
   var h=d.hesaplamaTemeli||{};
   var auA=h.baseAlis!=null?h.baseAlis:(h.xauAlis!=null?h.xauAlis:null);
   var auS=h.baseSatis!=null?h.baseSatis:(h.xauSatis!=null?h.xauSatis:null);
   if(auA!=null && auS!=null && !isNaN(Number(auA)) && !isNaN(Number(auS))){
-    rows.push({name:"HAS",kod:"AU",alis:Number(auA),satis:Number(auS),kind:"altin"});
+    rows.push({name:"AU (HAS)",kod:"AU",alis:Number(auA),satis:Number(auS),kind:"altin"});
   }
   return rows;
 }
@@ -1689,13 +1768,29 @@ function parseSolis(d){
 function parseAltinkose(d){
   var list=(d.veri&&d.veri.kurlar)||[];
   meta.altinkose={time:new Date().toLocaleTimeString("tr-TR")};
-  return list.map(function(k){
+  var rename = {
+    "xau": "AU (HAS)", "urun_2": "AU (HAS)",
+    "ag": "Gümüş", "gumus": "Gümüş", "gümüş": "Gümüş",
+    "resad lira": "REŞAT LİRA", "resad": "REŞAT LİRA", "urun_4": "REŞAT LİRA",
+    "24 ayar": "24 AYAR", "ayar24": "24 AYAR",
+    "22 ayar": "22 AYAR", "ayar22": "22 AYAR",
+    "çeyrek": "ÇEYREK", "ceyrek": "ÇEYREK",
+    "yarım": "YARIM", "yarim": "YARIM",
+    "ziynet l.": "ZİYNET LİRA", "ziynet": "ZİYNET LİRA",
+    "ata lira": "ATA LİRA", "atalira": "ATA LİRA"
+  };
+  var orderKey = ["ayar24","24 ayar","ayar22","22 ayar","ceyrek","çeyrek","yarim","yarım","ziynet","atalira","ata lira","urun_4","resad","urun_2","xau","ag"];
+  var rows = list.map(function(k){
     var nm=(k.ad||k.kur_kodu||"").toLowerCase();
-    var kod=(k.kur_kod||"").toLowerCase();
+    var kod=(k.kur_kod||k.kur_kodu||"").toLowerCase();
     var tip=(k.tip||"").toLowerCase();
-    var isAltin = tip==="emtia" || /ayar|ceyrek|çeyrek|yarim|yarım|ziynet|ata|has|gram|gumus|gümüş|xau|altin|altın/.test(nm+" "+kod);
+    var isAltin = tip==="emtia" || tip==="ozel_urun" || /ayar|ceyrek|çeyrek|yarim|yarım|ziynet|ata|has|gram|gumus|gümüş|xau|ag|altin|altın|resad|reşat/.test(nm+" "+kod);
     var dispName = k.ad||k.kur_kodu||kod;
-    if(/\bxau\b/i.test(nm+" "+kod+" "+dispName)) dispName = "HAS";
+    if(rename[nm]) dispName = rename[nm];
+    else if(rename[kod]) dispName = rename[kod];
+    else if(/\bxau\b/i.test(nm+" "+kod)) dispName = "AU (HAS)";
+    else if(/^ag$/i.test(nm) || /^ag$/i.test(kod)) dispName = "Gümüş";
+    else if(/resad|reşat/i.test(nm+" "+kod)) dispName = "REŞAT LİRA";
     return {
       name: dispName,
       kod: k.kur_kod||k.kur_kodu,
@@ -1705,7 +1800,22 @@ function parseAltinkose(d){
       kind: isAltin?"altin":"doviz"
     };
   }).filter(function(r){ return !isNaN(r.alis) || !isNaN(r.satis); });
+  rows.forEach(function(r){
+    if(isNaN(r.alis)) r.alis = 0;
+    if(isNaN(r.satis)) r.satis = 0;
+  });
+  rows.sort(function(a,b){
+    var ka = (a.kod||a.name||"").toLowerCase();
+    var kb = (b.kod||b.name||"").toLowerCase();
+    var ia = orderKey.indexOf(ka); if(ia<0) ia = orderKey.indexOf((a.name||"").toLowerCase());
+    var ib = orderKey.indexOf(kb); if(ib<0) ib = orderKey.indexOf((b.name||"").toLowerCase());
+    if(ia<0) ia = 100; if(ib<0) ib = 100;
+    if(ia!==ib) return ia-ib;
+    return String(a.name).localeCompare(String(b.name),"tr");
+  });
+  return rows;
 }
+
 function parseSar(d){
   meta.sar={time:d.time||new Date().toLocaleTimeString("tr-TR")};
   var names={2:"USD",3:"EUR",5:"CHF",6:"SAR",7:"GBP",22:"AUD",23:"CAD",24:"JPY"};
@@ -2019,6 +2129,8 @@ function firmTable(key, rows, flashes){
         nameHtml = '<span class="prod-short">'+standardName(nid, lab.title)+'</span>';
       } else if(key === "solis" && (r.kod==="AU" || /AU\s*\(HAS\)/i.test(r.name||""))){
         nameHtml = '<span class="prod-short">HAS</span>';
+      } else if(/AU\s*\(HAS\)/i.test(r.name||"") || ((r.kod||"").toUpperCase()==="AU" && /gunes|has/i.test(key+" "+(r.name||"")))){
+        nameHtml = '<span class="prod-short">AU (HAS)</span>';
       } else if(/^HAS$/i.test(r.name||"") || /^XAU$/i.test(r.kod||"")){
         nameHtml = '<span class="prod-short">HAS</span>';
       } else {
@@ -2217,14 +2329,15 @@ function openFirmSettings(key){
     row.innerHTML = '<span style="color:var(--muted)">+</span><input type="text" data-extra="'+idx+'" value="'+String(ex.name||"").replace(/"/g,"&quot;")+'" /><button type="button" data-rm-extra="'+idx+'">Sil</button>';
     box.appendChild(row);
   });
-  modal.style.display = "flex";
-  modal.setAttribute("aria-hidden","false");
+  modal.classList.add("open");
 }
+
 function closeFirmSettings(){
   var modal = document.getElementById("firmSetModal");
-  if(modal){ modal.style.display="none"; modal.setAttribute("aria-hidden","true"); }
+  if(modal) modal.classList.remove("open");
   _firmSetKey = null;
 }
+
 function saveFirmSettingsFromUi(){
   if(!_firmSetKey) return;
   var key = _firmSetKey;
@@ -2263,9 +2376,11 @@ function bindFirmSettingsUi(){
   var modal = document.getElementById("firmSetModal");
   if(!modal || modal.dataset.bound) return;
   modal.dataset.bound = "1";
-  document.getElementById("firmSetClose").onclick = closeFirmSettings;
-  document.getElementById("firmSetBackdrop").onclick = closeFirmSettings;
-  document.getElementById("fsCancel").onclick = closeFirmSettings;
+  var closeBtn = document.getElementById("firmSetClose");
+  if(closeBtn) closeBtn.onclick = closeFirmSettings;
+  modal.addEventListener("click", function(ev){ if(ev.target === modal) closeFirmSettings(); });
+  var cancelBtn = document.getElementById("fsCancel");
+  if(cancelBtn) cancelBtn.onclick = closeFirmSettings;
   document.getElementById("fsSave").onclick = saveFirmSettingsFromUi;
   document.getElementById("fsReset").onclick = function(){
     if(!_firmSetKey) return;
@@ -2301,14 +2416,9 @@ function bindFirmSettingsUi(){
   });
 }
 function onFirmLogoClick(key){
-  _logoClicks[key] = (_logoClicks[key]||0) + 1;
-  if(_logoClicks[key] >= 5){
-    _logoClicks[key] = 0;
-    bindFirmSettingsUi();
-    openFirmSettings(key);
-  }
-  clearTimeout(onFirmLogoClick["_t_"+key]);
-  onFirmLogoClick["_t_"+key] = setTimeout(function(){ _logoClicks[key]=0; }, 2500);
+  /* çift tık ile açılır — bindFirmLogoClicks dblclick kullanır */
+  bindFirmSettingsUi();
+  openFirmSettings(key);
 }
 
 
@@ -2319,14 +2429,33 @@ function bindFirmLogoClicks(root){
   root.querySelectorAll(".firm-col").forEach(function(col){
     var key = (col.id||"").replace(/^col-/,"");
     if(!key) return;
-    var logo = col.querySelector(".firm-logo, .firm-logo-badge");
-    if(!logo || logo.dataset.clickBound) return;
-    logo.dataset.clickBound = "1";
-    logo.addEventListener("click", function(ev){
+    var head = col.querySelector(".firm-head") || col.querySelector("h3") || col;
+    if(head.dataset.firmSetBound) return;
+    head.dataset.firmSetBound = "1";
+    head.style.cursor = "pointer";
+    head.title = "Çift tık: sütun ayarları";
+    head.addEventListener("dblclick", function(ev){
       ev.preventDefault();
       ev.stopPropagation();
       onFirmLogoClick(key);
     });
+    // Logo tek tık da dene (mobilde dblclick zor)
+    var logo = col.querySelector(".firm-logo, .firm-logo-badge, .firm-name");
+    if(logo && !logo.dataset.firmSetBound){
+      logo.dataset.firmSetBound = "1";
+      var lastTap = 0;
+      logo.addEventListener("click", function(ev){
+        var now = Date.now();
+        if(now - lastTap < 400){
+          ev.preventDefault();
+          ev.stopPropagation();
+          onFirmLogoClick(key);
+          lastTap = 0;
+        } else {
+          lastTap = now;
+        }
+      });
+    }
   });
 }
 
@@ -2406,18 +2535,23 @@ function renderFirmGrid(){
 function renderTicker(){
   /* Sadece piyasa ortalamaları — firma fiyatı yok */
   var keys = [
-    { id:"HAS24", label:"HAS Ort." },
-    { id:"AYAR22", label:"22 Ayar Ort." },
-    { id:"CEYREK", label:"Çeyrek Ort." },
-    { id:"YARIM", label:"Yarım Ort." },
-    { id:"TAM", label:"Ziynet Ort." },
-    { id:"ATA", label:"Ata Ort." },
-    { id:"USD", label:"USD Ort." },
-    { id:"EUR", label:"EUR Ort." },
-    { id:"GBP", label:"GBP Ort." },
-    { id:"CHF", label:"CHF Ort." },
-    { id:"SAR", label:"SAR Ort." },
-    { id:"AUD", label:"AUD Ort." }
+    { id:"HAS24", label:"24 AYAR" },
+    { id:"AYAR22", label:"22 AYAR" },
+    { id:"CEYREK", label:"ÇEYREK" },
+    { id:"YARIM", label:"YARIM" },
+    { id:"TAM", label:"TAM" },
+    { id:"ATA", label:"ATA LİRA" },
+    { id:"USD", label:"USD" },
+    { id:"EUR", label:"EUR" },
+    { id:"GBP", label:"GBP" },
+    { id:"CHF", label:"CHF" },
+    { id:"AUD", label:"AUD" },
+    { id:"CAD", label:"CAD" },
+    { id:"SAR", label:"SAR" },
+    { id:"JPY", label:"JPY" },
+    { id:"RUB", label:"RUB" },
+    { id:"GEL", label:"GEL" },
+    { id:"AZN", label:"AZN" }
   ];
   var ticks = [];
   keys.forEach(function(item){
@@ -3113,28 +3247,25 @@ function fetchSource(key){
 function parseIlkayClient(html){
   if(typeof html !== "string") html = String(html||"");
   var rates = [], seen = {};
-  var re = /<span class="ticker-item">\s*([A-Z]{3})\s*<span class="ticker-buy">([^<]+)<\/span><span class="ticker-sep">\/<\/span><span class="ticker-sell">([^<]+)<\/span>/g;
-  var m;
-  while((m = re.exec(html))){
-    if(seen[m[1]]) continue;
-    seen[m[1]] = 1;
-    rates.push({ code: m[1], alis: parseFloat(m[2].replace(",","." )), satis: parseFloat(m[3].replace(",",".")) });
+  var m, mainRe = /currency-name">\s*([^<]+)\s*<\/span>[\s\S]*?buy-price">\s*<span>([^<]+)<\/span>[\s\S]*?sell-price">\s*<span>([^<]+)<\/span>/gi;
+  while((m = mainRe.exec(html))){
+    var code = m[1].trim().toUpperCase();
+    if(seen[code]) continue;
+    var alis = parseFloat(String(m[2]).replace(",","."));
+    var satis = parseFloat(String(m[3]).replace(",","."));
+    if(isNaN(alis)||isNaN(satis)) continue;
+    seen[code]=1;
+    rates.push({ code: code, alis: alis, satis: satis });
   }
-  var re2 = /currency-name">\s*([^<]+)/g;
-  // also rate rows
-  var blocks = html.split(/class="rate-row"/);
-  for(var bi=1; bi<blocks.length; bi++){
-    var b = blocks[bi];
-    var nm = /currency-name">\s*([^<]+)/.exec(b);
-    var prices = b.match(/>([0-9]+,[0-9]+)</g) || [];
-    var nums = prices.map(function(p){ return p.replace(/[> <]/g,""); });
-    if(nm && nums.length>=2){
-      var code = nm[1].trim();
-      if(!seen[code]){
-        seen[code]=1;
-        rates.push({ code: code, alis: parseFloat(nums[0].replace(",",".")), satis: parseFloat(nums[1].replace(",",".")) });
-      }
-    }
+  var tickRe = /ticker-item">\s*([A-Z]{3})\s*<span class="ticker-buy">([^<]+)<\/span>\s*<span class="ticker-sep">\/<\/span>\s*<span class="ticker-sell">([^<]+)<\/span>/gi;
+  while((m = tickRe.exec(html))){
+    var c = m[1].toUpperCase();
+    if(seen[c]) continue;
+    var a = parseFloat(String(m[2]).replace(",","."));
+    var s = parseFloat(String(m[3]).replace(",","."));
+    if(isNaN(a)||isNaN(s)) continue;
+    seen[c]=1;
+    rates.push({ code: c, alis: a, satis: s });
   }
   return { source: "ilkay", time: new Date().toISOString(), data: rates };
 }
