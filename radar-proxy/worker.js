@@ -12,7 +12,7 @@ const CORS_HEADERS = {
 
 const HTML_URLS = [
   "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/radar-pro-latest (4).html",
-  "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/radar-pro-latest (4).html",
+  "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/radar-pro-latest.html",
   "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/altin-fiyatlari.html",
 ];
 
