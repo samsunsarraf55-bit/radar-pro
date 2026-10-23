@@ -1,23 +1,16 @@
 # RADAR PRO
 
-## Guncel HTML yukleme (onemli)
+## Guncellemeler neden gorunmuyor?
 
-Dosya boyutu nedeniyle otomatik yukleme her zaman mumkun olmayabilir.
+Worker, uygulamayi **GitHub**daki `radar-pro-latest.html` dosyasindan okur.
+Siz sadece bilgisayardaki HTML'i guncellerseniz site degismez.
 
-1. Bilgisayardaki **radar-pro-latest.html** veya **altin-fiyatlari.html** dosyasini acin
+## Ne yapmalisiniz?
+
+1. En guncel **radar-pro-latest.html** (veya altin-fiyatlari.html) dosyasini bilgisayariniza alin
 2. https://github.com/samsunsarraf55-bit/radar-pro/upload/main
-3. Dosyayi surukleyin, isim: **radar-pro-latest.html**
-4. Commit
+3. Dosyayi surukleyin, isim: `radar-pro-latest.html` → Commit
+4. Cloudflare Worker **Edit code** → asagidaki worker.js Raw kopyala → Deploy
+5. Site: https://fancy-scene-36a5.samsunsarraf55.workers.dev  (Ctrl+F5)
 
-## Cloudflare Worker
-
-1. Edit code
-2. **radar-proxy/worker.js** (repo) icerigini yapistirin VEYA gomulu HTML'li worker dosyasini kullanin
-3. Deploy
-4. https://fancy-scene-36a5.samsunsarraf55.workers.dev
-
-## Proxy URL
-
-```
-https://fancy-scene-36a5.samsunsarraf55.workers.dev
-```
+Worker: https://github.com/samsunsarraf55-bit/radar-pro/blob/main/radar-proxy/worker.js

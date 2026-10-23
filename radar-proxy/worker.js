@@ -1,5 +1,5 @@
 /**
- * RADAR PRO Worker - serves app from GitHub HTML + API proxy
+ * RADAR PRO Worker - GitHub HTML + API proxy
  */
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -9,9 +9,8 @@ const CORS_HEADERS = {
 };
 
 const HTML_URLS = [
-  "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/radar-pro-latest.html",
   "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/radar-pro-latest.html",
-  "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/altin-fiyatlari.html",
+  "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/radar-pro-latest.html",
   "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/altin-fiyatlari.html",
 ];
 
@@ -65,12 +64,25 @@ function json(data, status) {
 
 function parseIlkayHtml(html) {
   var rates = [], seen = {};
-  var tickRe = /<span class="ticker-item">\s*([A-Z]{3})\s*<span class="ticker-buy">([^<]+)<\/span><span class="ticker-sep">\/<\/span><span class="ticker-sell">([^<]+)<\/span>/g;
-  var m;
+  var m, mainRe = /currency-name">\s*([^<]+)\s*<\/span>[\s\S]*?buy-price">\s*<span>([^<]+)<\/span>[\s\S]*?sell-price">\s*<span>([^<]+)<\/span>/gi;
+  while ((m = mainRe.exec(html))) {
+    var code = m[1].trim().toUpperCase();
+    if (seen[code]) continue;
+    var alis = parseFloat(String(m[2]).replace(",", "."));
+    var satis = parseFloat(String(m[3]).replace(",", "."));
+    if (isNaN(alis) || isNaN(satis)) continue;
+    seen[code] = 1;
+    rates.push({ code: code, alis: alis, satis: satis });
+  }
+  var tickRe = /ticker-item">\s*([A-Z]{3})\s*<span class="ticker-buy">([^<]+)<\/span>\s*<span class="ticker-sep">\/<\/span>\s*<span class="ticker-sell">([^<]+)<\/span>/gi;
   while ((m = tickRe.exec(html))) {
-    if (seen[m[1]]) continue;
-    seen[m[1]] = 1;
-    rates.push({ code: m[1], alis: parseFloat(String(m[2]).replace(",", ".")), satis: parseFloat(String(m[3]).replace(",", ".")) });
+    var c = m[1].toUpperCase();
+    if (seen[c]) continue;
+    var a = parseFloat(String(m[2]).replace(",", "."));
+    var s = parseFloat(String(m[3]).replace(",", "."));
+    if (isNaN(a) || isNaN(s)) continue;
+    seen[c] = 1;
+    rates.push({ code: c, alis: a, satis: s });
   }
   return { source: "ilkay", time: new Date().toISOString(), data: rates };
 }
@@ -136,12 +148,13 @@ async function fetchVizyon() {
 }
 
 async function loadAppHtml() {
+  var bust = "?t=" + Date.now();
   for (var i = 0; i < HTML_URLS.length; i++) {
     try {
-      var hr = await fetch(HTML_URLS[i], { cf: { cacheTtl: 30 } });
+      var hr = await fetch(HTML_URLS[i] + bust, { cf: { cacheTtl: 0, cacheEverything: false } });
       if (hr.ok) {
         var body = await hr.text();
-        if (body.indexOf("firmGrid") !== -1 || body.indexOf("RADAR") !== -1) return body;
+        if (body.indexOf("firmGrid") !== -1 || body.indexOf("STANDARD_NAMES") !== -1) return body;
       }
     } catch (e) {}
   }
@@ -171,11 +184,14 @@ export default {
       var html = await loadAppHtml();
       if (html) {
         return new Response(html, {
-          headers: Object.assign({ "Content-Type": "text/html; charset=utf-8" }, CORS_HEADERS),
+          headers: Object.assign({
+            "Content-Type": "text/html; charset=utf-8",
+            "Cache-Control": "no-store, no-cache, must-revalidate",
+          }, CORS_HEADERS),
         });
       }
       return new Response(
-        "<!DOCTYPE html><html><body><h1>RADAR PRO</h1><p>HTML yuklenemedi.</p><p><a href=/api/health>health</a></p></body></html>",
+        "<!DOCTYPE html><html><body style='font-family:system-ui;padding:40px'><h1>RADAR PRO</h1><p><b>radar-pro-latest.html</b> dosyasini GitHub'a yukleyin.</p><p><a href='https://github.com/samsunsarraf55-bit/radar-pro/upload/main'>GitHub Upload</a></p><p><a href=/api/health>health</a></p></body></html>",
         { headers: Object.assign({ "Content-Type": "text/html; charset=utf-8" }, CORS_HEADERS) }
       );
     }
