@@ -1,19 +1,20 @@
 # RADAR PRO
 
-Canli altin ve doviz terminali.
+## Guncel HTML yukleme (onemli)
 
-## Onemli: HTML yukleme
+Dosya boyutu nedeniyle otomatik yukleme her zaman mumkun olmayabilir.
 
-`altin-fiyatlari.html` dosyasini guncellemek icin:
-
-1. https://github.com/samsunsarraf55-bit/radar-pro/upload/main
-2. Bilgisayardaki **altin-fiyatlari.html** (veya radar-pro-latest.html) dosyasini surukleyin
-3. Ayni isimle ustune yazin → Commit
+1. Bilgisayardaki **radar-pro-latest.html** veya **altin-fiyatlari.html** dosyasini acin
+2. https://github.com/samsunsarraf55-bit/radar-pro/upload/main
+3. Dosyayi surukleyin, isim: **radar-pro-latest.html**
+4. Commit
 
 ## Cloudflare Worker
 
-1. Edit code → `radar-proxy/worker.js` icerigini yapistirin → Deploy
-2. Acin: https://fancy-scene-36a5.samsunsarraf55.workers.dev
+1. Edit code
+2. **radar-proxy/worker.js** (repo) icerigini yapistirin VEYA gomulu HTML'li worker dosyasini kullanin
+3. Deploy
+4. https://fancy-scene-36a5.samsunsarraf55.workers.dev
 
 ## Proxy URL
 
