@@ -1,5 +1,7 @@
 /**
- * RADAR PRO Worker - GitHub HTML + API proxy
+ * RADAR PRO — Cloudflare Worker
+ * Sadece JavaScript. HTML yapistirmayin.
+ * HTML: GitHub radar-pro-latest.html
  */
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -107,7 +109,11 @@ async function fetchVizyon() {
     var url = "wss://socket.haremaltin.com/socket.io/?EIO=4&transport=websocket";
     var settled = false, ws;
     var timer = setTimeout(function () {
-      if (!settled) { settled = true; try { if (ws) ws.close(); } catch (e) {} reject(new Error("vizyon timeout")); }
+      if (!settled) {
+        settled = true;
+        try { if (ws) ws.close(); } catch (e) {}
+        reject(new Error("vizyon timeout"));
+      }
     }, 15000);
     try { ws = new WebSocket(url); } catch (e) { clearTimeout(timer); reject(e); return; }
     ws.addEventListener("message", function (ev) {
@@ -130,9 +136,12 @@ async function fetchVizyon() {
             if (alis <= 0 && satis <= 0) return;
             rows.push({ code: code, name: code, alis: alis, satis: satis });
           });
-          rows.sort(function (a, b) { return VIZYON_ALLOW.indexOf(a.code) - VIZYON_ALLOW.indexOf(b.code); });
+          rows.sort(function (a, b) {
+            return VIZYON_ALLOW.indexOf(a.code) - VIZYON_ALLOW.indexOf(b.code);
+          });
           if (!settled) {
-            settled = true; clearTimeout(timer);
+            settled = true;
+            clearTimeout(timer);
             try { ws.close(); } catch (e) {}
             resolve({ source: "vizyon", time: new Date().toISOString(), data: rows });
           }
@@ -151,7 +160,7 @@ async function loadAppHtml() {
   var bust = "?t=" + Date.now();
   for (var i = 0; i < HTML_URLS.length; i++) {
     try {
-      var hr = await fetch(HTML_URLS[i] + bust, { cf: { cacheTtl: 0, cacheEverything: false } });
+      var hr = await fetch(HTML_URLS[i] + bust, { cf: { cacheTtl: 0 } });
       if (hr.ok) {
         var body = await hr.text();
         if (body.indexOf("firmGrid") !== -1 || body.indexOf("STANDARD_NAMES") !== -1) return body;
@@ -186,12 +195,12 @@ export default {
         return new Response(html, {
           headers: Object.assign({
             "Content-Type": "text/html; charset=utf-8",
-            "Cache-Control": "no-store, no-cache, must-revalidate",
+            "Cache-Control": "no-store",
           }, CORS_HEADERS),
         });
       }
       return new Response(
-        "<!DOCTYPE html><html><body style='font-family:system-ui;padding:40px'><h1>RADAR PRO</h1><p><b>radar-pro-latest.html</b> dosyasini GitHub'a yukleyin.</p><p><a href='https://github.com/samsunsarraf55-bit/radar-pro/upload/main'>GitHub Upload</a></p><p><a href=/api/health>health</a></p></body></html>",
+        "<!DOCTYPE html><html><body style='font-family:system-ui;padding:40px'><h1>RADAR PRO</h1><p>GitHub'a <b>radar-pro-latest.html</b> yukleyin.</p></body></html>",
         { headers: Object.assign({ "Content-Type": "text/html; charset=utf-8" }, CORS_HEADERS) }
       );
     }
