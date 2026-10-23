@@ -1,14 +1,17 @@
 /**
- * RADAR PRO — Cloudflare Worker (kalici proxy)
- * See repo README for deploy steps
+ * RADAR PRO Worker - serves app from GitHub HTML + API proxy
  */
-
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Accept",
   "Cache-Control": "no-store",
 };
+
+const HTML_URLS = [
+  "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/altin-fiyatlari.html",
+  "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/altin-fiyatlari.html",
+];
 
 const SOURCES = {
   kaptan: { url: "https://www.kaptandoviz.com/kurlar/api.php" },
@@ -48,52 +51,24 @@ const VIZYON_ADJ = {
   TEK_YENI: { alis: -715, satis: -560 },
   ATA_YENI: { alis: -100, satis: -275 },
 };
-
 const VIZYON_ALLOW = ["KULCEALTIN", "AYAR22", "CEYREK_YENI", "YARIM_YENI", "TEK_YENI", "ATA_YENI"];
 
 function json(data, status) {
   status = status || 200;
-  var headers = Object.assign(
-    { "Content-Type": "application/json; charset=utf-8" },
-    CORS_HEADERS
-  );
-  return new Response(JSON.stringify(data), { status: status, headers: headers });
+  return new Response(JSON.stringify(data), {
+    status: status,
+    headers: Object.assign({ "Content-Type": "application/json; charset=utf-8" }, CORS_HEADERS),
+  });
 }
 
 function parseIlkayHtml(html) {
-  var rates = [];
-  var seen = {};
-  var tickRe =
-    /<span class="ticker-item">\s*([A-Z]{3})\s*<span class="ticker-buy">([^<]+)<\/span><span class="ticker-sep">\/<\/span><span class="ticker-sell">([^<]+)<\/span>/g;
+  var rates = [], seen = {};
+  var tickRe = /<span class="ticker-item">\s*([A-Z]{3})\s*<span class="ticker-buy">([^<]+)<\/span><span class="ticker-sep">\/<\/span><span class="ticker-sell">([^<]+)<\/span>/g;
   var m;
   while ((m = tickRe.exec(html))) {
     if (seen[m[1]]) continue;
     seen[m[1]] = 1;
-    rates.push({
-      code: m[1],
-      alis: parseFloat(String(m[2]).replace(",", ".")),
-      satis: parseFloat(String(m[3]).replace(",", ".")),
-    });
-  }
-  var blocks = html.split('class="rate-row"');
-  for (var bi = 1; bi < blocks.length; bi++) {
-    var b = blocks[bi];
-    var nm = /currency-name">\s*([^<]+)/.exec(b);
-    var prices = b.match(/>([0-9]+,[0-9]+)</g) || [];
-    var nums = prices.map(function (p) {
-      return p.replace(/[> <]/g, "");
-    });
-    if (nm && nums.length >= 2) {
-      var code = nm[1].trim();
-      if (!seen[code]) {
-        seen[code] = 1;
-        rates.push({
-          code: code,
-          alis: parseFloat(nums[0].replace(",", ".")),
-          satis: parseFloat(nums[1].replace(",", ".")),
-        });
-      }
-    }
+    rates.push({ code: m[1], alis: parseFloat(String(m[2]).replace(",", ".")), satis: parseFloat(String(m[3]).replace(",", ".")) });
   }
   return { source: "ilkay", time: new Date().toISOString(), data: rates };
 }
@@ -101,62 +76,34 @@ function parseIlkayHtml(html) {
 async function fetchSource(key) {
   var spec = SOURCES[key];
   if (!spec) throw new Error("unknown source");
-  var headers = Object.assign(
-    {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
-      Accept: "application/json, text/plain, */*",
-    },
-    spec.headers || {}
-  );
+  var headers = Object.assign({
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+    Accept: "application/json, text/plain, */*",
+  }, spec.headers || {});
   var opts = { method: spec.method || "GET", headers: headers };
   if (spec.body) opts.body = spec.body;
   var res = await fetch(spec.url, opts);
   var text = await res.text();
   if (spec.parseHtml) return parseIlkayHtml(text);
-  try {
-    return JSON.parse(text.replace(/^\uFEFF/, ""));
-  } catch (e) {
-    throw new Error("json_parse: " + text.slice(0, 100));
-  }
+  return JSON.parse(text.replace(/^\uFEFF/, ""));
 }
 
 async function fetchVizyon() {
   return new Promise(function (resolve, reject) {
     var url = "wss://socket.haremaltin.com/socket.io/?EIO=4&transport=websocket";
-    var settled = false;
-    var ws;
+    var settled = false, ws;
     var timer = setTimeout(function () {
-      if (!settled) {
-        settled = true;
-        try {
-          if (ws) ws.close();
-        } catch (e) {}
-        reject(new Error("vizyon timeout"));
-      }
+      if (!settled) { settled = true; try { if (ws) ws.close(); } catch (e) {} reject(new Error("vizyon timeout")); }
     }, 15000);
-    try {
-      ws = new WebSocket(url);
-    } catch (e) {
-      clearTimeout(timer);
-      reject(e);
-      return;
-    }
+    try { ws = new WebSocket(url); } catch (e) { clearTimeout(timer); reject(e); return; }
     ws.addEventListener("message", function (ev) {
       var d = String(ev.data);
-      if (d.charAt(0) === "0") {
-        ws.send("40");
-        return;
-      }
-      if (d.indexOf("40") === 0) {
-        ws.send('42["get_prices"]');
-        return;
-      }
+      if (d.charAt(0) === "0") { ws.send("40"); return; }
+      if (d.indexOf("40") === 0) { ws.send('42["get_prices"]'); return; }
       if (d.indexOf("42") === 0 && d.indexOf("price_changed") !== -1) {
         try {
           var payload = JSON.parse(d.slice(2));
-          var body = payload[1] || {};
-          var data = body.data || body;
+          var data = (payload[1] && payload[1].data) || payload[1] || {};
           var rows = [];
           Object.keys(data).forEach(function (code) {
             if (VIZYON_ALLOW.indexOf(code) < 0) return;
@@ -165,41 +112,38 @@ async function fetchVizyon() {
             var satis = parseFloat(String(e.satis).replace(",", "."));
             if (isNaN(alis) || isNaN(satis)) return;
             var adj = VIZYON_ADJ[code];
-            if (adj) {
-              alis += Number(adj.alis) || 0;
-              satis += Number(adj.satis) || 0;
-            }
+            if (adj) { alis += Number(adj.alis) || 0; satis += Number(adj.satis) || 0; }
             if (alis <= 0 && satis <= 0) return;
             rows.push({ code: code, name: code, alis: alis, satis: satis });
           });
-          rows.sort(function (a, b) {
-            return VIZYON_ALLOW.indexOf(a.code) - VIZYON_ALLOW.indexOf(b.code);
-          });
+          rows.sort(function (a, b) { return VIZYON_ALLOW.indexOf(a.code) - VIZYON_ALLOW.indexOf(b.code); });
           if (!settled) {
-            settled = true;
-            clearTimeout(timer);
-            try {
-              ws.close();
-            } catch (e) {}
+            settled = true; clearTimeout(timer);
+            try { ws.close(); } catch (e) {}
             resolve({ source: "vizyon", time: new Date().toISOString(), data: rows });
           }
         } catch (err) {
-          if (!settled) {
-            settled = true;
-            clearTimeout(timer);
-            reject(err);
-          }
+          if (!settled) { settled = true; clearTimeout(timer); reject(err); }
         }
       }
     });
     ws.addEventListener("error", function () {
-      if (!settled) {
-        settled = true;
-        clearTimeout(timer);
-        reject(new Error("vizyon ws error"));
-      }
+      if (!settled) { settled = true; clearTimeout(timer); reject(new Error("vizyon ws error")); }
     });
   });
+}
+
+async function loadAppHtml() {
+  for (var i = 0; i < HTML_URLS.length; i++) {
+    try {
+      var hr = await fetch(HTML_URLS[i], { cf: { cacheTtl: 30 } });
+      if (hr.ok) {
+        var body = await hr.text();
+        if (body.indexOf("firmGrid") !== -1 || body.indexOf("RADAR") !== -1) return body;
+      }
+    } catch (e) {}
+  }
+  return null;
 }
 
 export default {
@@ -222,31 +166,16 @@ export default {
       }
     }
     if (url.pathname === "/" || url.pathname === "" || url.pathname === "/app" || url.pathname === "/index.html") {
-      var sources = [
-        "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/altin-fiyatlari.html",
-        "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/altin-fiyatlari.html",
-      ];
-      for (var si = 0; si < sources.length; si++) {
-        try {
-          var hr = await fetch(sources[si], { cf: { cacheTtl: 60 } });
-          if (hr.ok) {
-            var body = await hr.text();
-            if (body.indexOf("RADAR") !== -1 || body.indexOf("firmGrid") !== -1) {
-              return new Response(body, {
-                headers: Object.assign({ "Content-Type": "text/html; charset=utf-8" }, CORS_HEADERS),
-              });
-            }
-          }
-        } catch (e) {}
+      var html = await loadAppHtml();
+      if (html) {
+        return new Response(html, {
+          headers: Object.assign({ "Content-Type": "text/html; charset=utf-8" }, CORS_HEADERS),
+        });
       }
-      var help =
-        "<!DOCTYPE html><html lang=tr><head><meta charset=utf-8><title>RADAR PRO</title></head><body>" +
-        "<h1>RADAR PRO Proxy</h1><p>HTML henuz GitHubda yok. Proxy URL: <code>" +
-        url.origin +
-        "</code></p><p><a href=/api/health>/api/health</a></p></body></html>";
-      return new Response(help, {
-        headers: Object.assign({ "Content-Type": "text/html; charset=utf-8" }, CORS_HEADERS),
-      });
+      return new Response(
+        "<!DOCTYPE html><html><body><h1>RADAR PRO</h1><p>altin-fiyatlari.html GitHub'a yukleyin.</p><p><a href=/api/health>health</a></p></body></html>",
+        { headers: Object.assign({ "Content-Type": "text/html; charset=utf-8" }, CORS_HEADERS) }
+      );
     }
     return json({ error: "not_found", path: url.pathname }, 404);
   },
