@@ -1625,6 +1625,174 @@
       .firm-order-cards{grid-template-columns:repeat(2,1fr)!important}
     }
 
+  
+    /* Özet şerit — dar, birleşik */
+    .sum-row-global{
+      display:flex!important;
+      flex-wrap:wrap;
+      gap:6px!important;
+      margin:6px 0 8px!important;
+      align-items:stretch;
+    }
+    .sum-row-global .sum-card{
+      flex:1 1 130px;
+      max-width:200px;
+      padding:8px 10px!important;
+      border-radius:10px!important;
+      margin:0!important;
+      box-shadow:none!important;
+    }
+    .sum-row-global .sum-card .lbl{font-size:10px!important;margin-bottom:2px!important}
+    .sum-row-global .sum-card .val{font-size:15px!important;font-weight:800}
+    .sum-row-global .sum-card .sub{font-size:10px!important;margin-top:2px!important}
+    .sum-row-global .sum-card .mini-row{display:none!important} /* tekrar eden mini satırları gizle */
+    .sum-row-global .sum-card.hot-arb{max-width:220px;border-color:#16a34a}
+    .sum-mini-bar{
+      display:flex;flex-wrap:wrap;gap:6px 10px;width:100%;
+      padding:4px 2px 2px;font-size:10px;color:var(--muted);
+    }
+    .sum-mini-bar .mini{white-space:nowrap}
+    @media (max-width:700px){
+      .sum-row-global .sum-card{flex:1 1 calc(50% - 6px);max-width:none}
+    }
+
+  
+    /* Ürün özet kartları — dar, yatay dolu */
+    .sum-row-global{
+      display:flex!important;
+      flex-wrap:nowrap!important;
+      gap:6px!important;
+      margin:6px 0 8px!important;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      padding-bottom:4px;
+    }
+    .sum-row-global .sum-card,
+    .sum-row-global .sum-prod-card{
+      flex:0 0 auto!important;
+      width:148px!important;
+      max-width:148px!important;
+      min-width:148px!important;
+      padding:8px 9px!important;
+      border-radius:10px!important;
+      box-shadow:none!important;
+    }
+    .sum-prod-card .lbl{
+      font-size:10px!important;font-weight:700;margin-bottom:6px!important;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .sum-prod-card .sum-as{display:flex;flex-direction:column;gap:4px}
+    .sum-prod-card .sum-a .v{color:#16a34a;font-weight:800;font-size:13px}
+    .sum-prod-card .sum-s .v{color:#dc2626;font-weight:800;font-size:13px}
+    .sum-prod-card .k{display:block;font-size:9px;color:var(--muted);font-weight:600}
+    .sum-prod-card .f{display:block;font-size:9px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sum-prod-card.hot-arb{border-color:#16a34a;width:150px!important}
+    @media (min-width:1100px){
+      .sum-row-global{flex-wrap:wrap!important;overflow-x:visible}
+      .sum-row-global .sum-prod-card{
+        flex:1 1 calc(11% - 6px)!important;
+        width:auto!important;min-width:120px!important;max-width:160px!important;
+      }
+    }
+
+  
+    .sum-prod-card .f{
+      display:inline-flex!important;align-items:center;gap:4px;
+      font-size:9px;color:var(--muted);margin-top:2px;max-width:100%;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+    }
+    .sum-prod-card .f img.firm-logo,
+    .sum-prod-card .f .firm-logo-badge{
+      width:12px!important;height:12px!important;flex-shrink:0
+    }
+
+  
+    .sum-prod-card .f{
+      display:inline-flex!important;align-items:center;gap:5px;
+      font-size:11px!important;font-weight:600;color:var(--text)!important;
+      margin-top:3px;max-width:100%;
+    }
+    .sum-prod-card .f-logo{display:inline-flex;align-items:center}
+    .sum-prod-card .f img.firm-logo,
+    .sum-prod-card .f .firm-logo-badge,
+    .sum-prod-card .f-logo img.firm-logo,
+    .sum-prod-card .f-logo .firm-logo-badge{
+      width:16px!important;height:16px!important;border-radius:4px
+    }
+    .sum-row-global .sum-prod-card{
+      width:156px!important;min-width:156px!important;max-width:156px!important;
+      padding:10px!important;
+    }
+    .sum-row-global .sum-tail{
+      width:168px!important;min-width:168px!important;max-width:168px!important;
+      border-style:dashed;
+    }
+    .sum-prod-card .v{font-size:14px!important}
+
+  
+    .sum-prod-card .sum-a,
+    .sum-prod-card .sum-s{
+      display:flex!important;
+      flex-wrap:nowrap!important;
+      align-items:baseline;
+      gap:4px;
+      min-width:0;
+    }
+    .sum-prod-card .sum-a .k,
+    .sum-prod-card .sum-s .k{
+      display:none; /* Alış max / Satış min zaten üstte lbl ile yetebilir — satırı sıkı tut */
+    }
+    .sum-prod-card .sum-as .k{
+      display:block;
+      flex:0 0 auto;
+      width:100%;
+      font-size:9px;
+      margin-bottom:1px;
+    }
+    .sum-prod-card .sum-a,
+    .sum-prod-card .sum-s{
+      flex-wrap:wrap!important;
+    }
+    .sum-prod-card .sum-a .v,
+    .sum-prod-card .sum-s .v{
+      flex:0 0 auto;
+      white-space:nowrap;
+    }
+    .sum-prod-card .sum-a .f,
+    .sum-prod-card .sum-s .f{
+      flex:1 1 auto;
+      display:inline-flex!important;
+      align-items:center;
+      gap:4px;
+      margin-top:0!important;
+      margin-left:4px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      min-width:0;
+      vertical-align:baseline;
+    }
+
+  
+    .sum-prod-card .vf{
+      display:flex!important;
+      flex-direction:row!important;
+      flex-wrap:nowrap!important;
+      align-items:center;
+      gap:5px;
+      min-width:0;
+      width:100%;
+    }
+    .sum-prod-card .vf .v{flex:0 0 auto;white-space:nowrap}
+    .sum-prod-card .vf .f{
+      flex:0 1 auto;
+      margin-top:0!important;
+      margin-left:0!important;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
   </style>
 </head>
 <body>
@@ -1873,7 +2041,7 @@
 
 var USE_PROXY = location.protocol === "http:" || location.protocol === "https:";
 var DOVIZ_ORDER = ["USD","EUR","GBP","CHF","AUD","CAD","SAR","JPY","RUB","GEL","AZN"];
-var ALTIN_ORDER = ["HAS24","AYAR22","CEYREK","YARIM","TAM","ATA","GUMUS"];
+var ALTIN_ORDER = ["HAS","AYAR24","AYAR22","CEYREK","YARIM","TAM","ATA","RESAT","GUMUS"];
 var ORDER = ["gunes","kaptan","solis","sar","altinkose","ilkay","vizyon"];
 var SOURCES = {
   gunes:     { name: "Güneş Kuyumculuk", proxy: "/api/gunes", direct: "https://api.guneskuyumculuk.net/temp-server/merkez/data" },
@@ -1907,7 +2075,16 @@ function loadSettings(){
 }
 function saveSettings(){ localStorage.setItem("radar_settings", JSON.stringify(settings)); }
 
-function fmt(n,d){ if(d==null) d=(typeof settings!=="undefined" && settings.decimals!=null)?settings.decimals:2; if(n==null||isNaN(Number(n)))return"—"; return Number(n).toLocaleString("tr-TR",{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function fmt(n,d){
+  if(n==null||isNaN(Number(n))) return "—";
+  var x = Number(n);
+  if(d==null){
+    /* 3. ondalık 0 ise 2 hane; değilse 3 hane (döviz vb.) */
+    var third = Math.round(Math.abs(x) * 1000) % 10;
+    d = (third === 0) ? 2 : 3;
+  }
+  return x.toLocaleString("tr-TR",{minimumFractionDigits:d,maximumFractionDigits:d});
+}
 function rowKey(r){ return String(r.kod||r.name||""); }
 
 var FIRM_LOGOS = {
@@ -2276,7 +2453,18 @@ function diffFlash(key, rows){
 
 /* MATCHERS */
 var MATCHERS = [
-  {id:"gram24", label:"24 AYAR", match:function(r){return r.kind==="altin"&&/24|HAS|^AU$|ayar_24|ayar24|Gram Altın/i.test((r.name||"")+" "+(r.kod||""));}},
+  {id:"gram24", label:"24 AYAR", match:function(r){
+      var id = (typeof normalizeProductId==="function")?normalizeProductId(r):"";
+      if(id==="AYAR24"||id==="HAS24") return true;
+      var n=(r.name||"")+" "+(r.kod||"");
+      return r.kind==="altin"&&/24\s*ayar|ayar_?24|kulce/i.test(n) && !/au\s*\(has\)|\bxau\b/i.test(n);
+    }},
+  {id:"hasAu", label:"AU (HAS)", match:function(r){
+      var id = (typeof normalizeProductId==="function")?normalizeProductId(r):"";
+      if(id==="HAS") return true;
+      var n=(r.name||"")+" "+(r.kod||"");
+      return /au\s*\(has\)|\bxau\b|\bhas\b/i.test(n) && !/24\s*ayar/i.test(n);
+    }},
   {id:"ceyrek", label:"ÇEYREK", match:function(r){return /[Cc]eyrek|Çeyrek|CEY/i.test((r.name||"")+" "+(r.kod||""));}},
   {id:"yarim", label:"YARIM", match:function(r){return /[Yy]arim|Yarım|YRM/i.test((r.name||"")+" "+(r.kod||""));}},
   {id:"ata", label:"ATA LİRA", match:function(r){return /[Aa]ta/i.test((r.name||"")+" "+(r.kod||""));}},
@@ -2382,9 +2570,9 @@ var STANDARD_NAMES = {
   USD: "USD", EUR: "EUR", GBP: "GBP", CHF: "CHF", AUD: "AUD", CAD: "CAD",
   SAR: "SAR", JPY: "JPY", RUB: "RUB", GEL: "GEL", AZN: "AZN",
   NOK: "NOK", SEK: "SEK", DKK: "DKK", AED: "AED",
-  HAS24: "24 AYAR", AYAR22: "22 AYAR", CEYREK: "ÇEYREK", YARIM: "YARIM",
-  TAM: "ZİYNET LİRA", TAM: "TAM",
-  ATA: "ATA LİRA", GUMUS: "GÜMÜŞ"
+  HAS: "AU (HAS)", HAS24: "24 AYAR", AYAR24: "24 AYAR",
+  AYAR22: "22 AYAR", CEYREK: "ÇEYREK", YARIM: "YARIM",
+  TAM: "TAM", ATA: "ATA LİRA", RESAT: "REŞAT LİRA", GUMUS: "GÜMÜŞ"
 };
 var FULL_NAMES = {
   USD: "ABD Doları", EUR: "Euro", GBP: "Sterlin", CHF: "İsviçre Frangı",
@@ -2422,7 +2610,7 @@ var FLAG_EMOJI = {
   CNY:"🇨🇳",QAR:"🇶🇦",KWD:"🇰🇼",BHD:"🇧🇭",OMR:"🇴🇲",INR:"🇮🇳"
 };
 function flagFor(id, label, kind, mode){
-  var goldIds = {HAS24:1,AYAR22:1,CEYREK:1,YARIM:1,TAM:1,ATA:1,GUMUS:1};
+  var goldIds = {HAS:1,HAS24:1,AYAR24:1,AYAR22:1,CEYREK:1,YARIM:1,TAM:1,ATA:1,RESAT:1,GUMUS:1};
   if(goldIds[id] || kind === "altin") return "";
   var key = resolveFlagKey(id, label);
   if(!key) return "";
@@ -2536,8 +2724,12 @@ function normalizeProductId(r){
   if(/eur|euro/i.test(norm) && !/parite|usd/i.test(norm)) return "EUR";
   if(/gbp|sterlin/i.test(norm)) return "GBP";
   if(/chf|frank/i.test(norm)) return "CHF";
-  // Solis AU = gram has altın (AUD'den önce!)
-  if((r.kod==="AU" || /^au\b/i.test(norm)) && (r.kind==="altin" || /has|gram|altin|\bau\b/i.test(norm)) && !/avustralya|aud/i.test(norm)) return "HAS24";
+  // AU (HAS) — has / XAU / AU kodu (AUD hariç)
+  if(/au\s*\(has\)|\bxau\b|urun_2/i.test(norm)) return "HAS";
+  if((r.kod==="AU" || /^au\b/i.test(norm)) && (r.kind==="altin" || /has|gram|altin/i.test(norm)) && !/avustralya|aud|24\s*ayar/i.test(norm)) return "HAS";
+  if(/^has$/i.test((r.name||"").trim()) || (/\bhas\b/i.test(norm) && !/24|ayar/i.test(norm))) return "HAS";
+  // 24 AYAR (ana sayfa ile aynı)
+  if(/24\s*ayar|ayar_?24|ayar24|kulcealtin|kulce/i.test(norm)) return "AYAR24";
   if(/\baud\b|avustralya/i.test(norm)) return "AUD";
   if(/\bcad\b|kanada/i.test(norm)) return "CAD";
   if(/\bsar\b|riyal/i.test(norm)) return "SAR";
@@ -2546,8 +2738,10 @@ function normalizeProductId(r){
   if(/yarim_yeni|yarım|yarim/i.test(norm) && !/ayar/i.test(norm)) return "YARIM";
   if(/tek_yeni|\btam\b|ziynet/i.test(norm) && !/ata/i.test(norm)) return "TAM";
   if(/ata_yeni|\bata\b|ata lira/i.test(norm)) return "ATA";
-  if(/kulcealtin|kulce/i.test(norm)) return "HAS24";
+  /* kulce → AYAR24 above */
   if(/ayar22|22 ayar/i.test(norm)) return "AYAR22";
+  if(/reşat|resad|urun_4/i.test(norm)) return "RESAT";
+  if(/gümüş|gumus|\bag\b/i.test(norm)) return "GUMUS";
   // JPY: sadece gerçek yen (yeni/yenı kelimesini yakalama)
   if(/\bjpy\b|(^|\s)yen(\s|$)/i.test(norm) || (r.kod||"").toUpperCase()==="JPY") return "JPY";
   // GEL = Gürcistan Larisi (tek birim)
@@ -3021,6 +3215,8 @@ function renderFirmGrid(){
 function renderTicker(){
   /* Sadece piyasa ortalamaları — firma fiyatı yok */
   var keys = [
+    { id:"HAS", label:"AU (HAS)" },
+    { id:"AYAR24", label:"24 AYAR" },
     { id:"HAS24", label:"24 AYAR" },
     { id:"AYAR22", label:"22 AYAR" },
     { id:"CEYREK", label:"ÇEYREK" },
@@ -3074,108 +3270,149 @@ function renderTicker(){
 }
 
 function renderSummary(){
-  var ops = findArbitrage();
-  var hasQ = collectQuotes(MATCHERS[0].match);
-  var bestBuy = null, bestSell = null;
-  hasQ.forEach(function(q){
-    if(!bestBuy || q.satis < bestBuy.satis) bestBuy = q;
-    if(!bestSell || q.alis > bestSell.alis) bestSell = q;
+  var ops = [];
+  try { ops = findArbitrage() || []; } catch(e){ ops = []; }
+
+  var cardIds = [
+    { id:"HAS", label:"AU (HAS)" },
+    { id:"AYAR24", label:"24 AYAR" },
+    { id:"AYAR22", label:"22 AYAR" },
+    { id:"CEYREK", label:"ÇEYREK" },
+    { id:"YARIM", label:"YARIM" },
+    { id:"TAM", label:"TAM" },
+    { id:"ATA", label:"ATA LİRA" },
+    { id:"USD", label:"USD" },
+    { id:"EUR", label:"EUR" }
+  ];
+
+  function quotesForId(pid){
+    var qs = [];
+    var firms = (typeof orderedFirms==="function") ? orderedFirms() : (typeof ORDER!=="undefined"?ORDER:[]);
+    firms.forEach(function(firm){
+      (store[firm]||[]).forEach(function(r){
+        var nid = (typeof normalizeProductId==="function") ? normalizeProductId(r) : "";
+        if(nid === pid || (pid==="AYAR24" && nid==="HAS24") || (pid==="HAS" && nid==="HAS24" && /has|au/i.test(r.name||"") && !/24/.test(r.name||""))){
+          var a = Number(r.alis), s = Number(r.satis);
+          if(isNaN(a) && isNaN(s)) return;
+          qs.push({
+            firm: firm,
+            name: (typeof firmDisplayName==="function"?firmDisplayName(firm):(SOURCES[firm]&&SOURCES[firm].name)||firm),
+            alis: a,
+            satis: s
+          });
+        }
+      });
+    });
+    return qs;
+  }
+
+  var html = "";
+  cardIds.forEach(function(c){
+    var qs = quotesForId(c.id);
+    if(!qs.length) return;
+    var maxAlis = null, minSatis = null, maxFirm = null, minFirm = null, maxKey = null, minKey = null;
+    qs.forEach(function(q){
+      if(q.alis!=null && !isNaN(q.alis)){
+        if(maxAlis==null || q.alis > maxAlis){ maxAlis = q.alis; maxFirm = q.name; maxKey = q.firm; }
+      }
+      if(q.satis!=null && !isNaN(q.satis) && q.satis > 0){
+        if(minSatis==null || q.satis < minSatis){ minSatis = q.satis; minFirm = q.name; minKey = q.firm; }
+      }
+    });
+    if(maxAlis==null && minSatis==null) return;
+    var fl = "";
+    try {
+      if(typeof flagFor==="function" && (c.id==="USD"||c.id==="EUR")) fl = flagFor(c.id, c.label, "doviz") || "";
+    } catch(e){}
+    function firmLine(key, name){
+      var logo = "";
+      try { if(key && typeof firmLogo==="function") logo = firmLogo(key); } catch(e){}
+      var short = (name||"—").split(" ")[0];
+      return '<span class="f">'+short+(logo ? '<span class="f-logo">'+logo+'</span>' : '')+'</span>';
+    }
+    html += '<div class="sum-card sum-prod-card" data-pid="'+c.id+'">'+
+      '<div class="lbl">'+fl+" "+c.label+'</div>'+
+      '<div class="sum-as">'+
+        '<div class="sum-a"><span class="k">Alış max</span><span class="vf"><span class="v">'+fmt(maxAlis)+'</span>'+firmLine(maxKey,maxFirm)+'</span></div>'+
+        '<div class="sum-s"><span class="k">Satış min</span><span class="vf"><span class="v">'+fmt(minSatis)+'</span>'+firmLine(minKey,minFirm)+'</span></div>'+
+      '</div></div>';
   });
 
-  function miniQuotes(){
-    var parts = [];
-    [["USD", MATCHERS[4]], ["EUR", MATCHERS[5]], ["24A", MATCHERS[0]]].forEach(function(pair){
-      var qs = collectQuotes(pair[1].match);
-      if(!qs.length) return;
-      var best = qs.slice().sort(function(a,b){ return (a.satis-a.alis)-(b.satis-b.alis); })[0];
-      var avgA = qs.reduce(function(s,x){return s+x.alis;},0)/qs.length;
-      var avgS = qs.reduce(function(s,x){return s+x.satis;},0)/qs.length;
-      var srcShort = best.name.split(" ")[0];
-      var fl = "";
-      if(pair[0] !== "24A" && typeof flagFor === "function"){
-        fl = flagFor(pair[0], pair[0], "doviz") || "";
-      }
-      parts.push('<span class="mini">'+fl+'<b>'+pair[0]+'</b> '+fmt(avgA)+'/'+fmt(avgS)+' <i style="font-style:normal;opacity:.75">('+srcShort+(qs.length>1?(' +'+qs.length):'')+')</i></span>');
-    });
-    return parts.length ? '<div class="mini-row">'+parts.join("")+'</div>' : '';
-  }
-  var mini = miniQuotes();
-  var html = "";
-  if(bestBuy){
-    html += '<div class="sum-card clickable" data-detail="has-low" title="Çift tık: detay">'+
-      '<div class="lbl">En düşük Has satış</div><div class="val">'+fmt(bestBuy.satis)+' ₺</div>'+
-      '<div class="sub">'+bestBuy.name+'</div>'+mini+'</div>';
-  }
-  if(bestSell){
-    html += '<div class="sum-card clickable" data-detail="has-high" title="Çift tık: detay">'+
-      '<div class="lbl">En yüksek Has alış</div><div class="val">'+fmt(bestSell.alis)+' ₺</div>'+
-      '<div class="sub">'+bestSell.name+'</div>'+mini+'</div>';
-  }
-
+  /* Sağ uç kart: arbitraj öncelikli, yoksa en dar makas döviz */
   var strong = ops.filter(function(a){ return a.strong; });
   if(strong.length){
     var t = strong[0];
-    html += '<div class="sum-card clickable hot-arb" id="sumArbCard" data-go="arb" title="Arbitraj menüsüne git">'+
-      '<div class="lbl">⚡ Arbitraj fırsatı</div>'+
-      '<div class="val">%'+t.pct.toFixed(2)+'</div>'+
-      '<div class="kar">Kâr: '+fmt(t.spread)+' ₺ / birim</div>'+
-      '<div class="sub">'+standardName(t.id,t.label)+': '+t.buyFrom.name+' → '+t.sellTo.name+'</div>'+
-      '<div class="sub" style="margin-top:4px;color:var(--green)">'+strong.length+' aktif fırsat · tıkla</div></div>';
+    var fl = "";
+    try { if(t.kind!=="altin" && typeof flagFor==="function") fl = flagFor(t.id,t.label,"doviz")||""; } catch(e){}
+    html += '<div class="sum-card sum-prod-card sum-tail hot-arb clickable" id="sumArbCard" data-go="arb" title="Arbitraj menüsüne git">'+
+      '<div class="lbl">⚡ Aktif fırsat</div>'+
+      '<div class="sum-as">'+
+        '<div class="sum-a"><span class="k">Ürün</span><span class="v" style="font-size:13px;color:var(--text)">'+fl+' '+standardName(t.id,t.label)+'</span></div>'+
+        '<div class="sum-s"><span class="k">Getiri</span><span class="v">%'+Number(t.pct).toFixed(2)+'</span><span class="f">Kâr '+fmt(t.spread)+' ₺</span></div>'+
+        '<div class="f" style="margin-top:4px">'+(t.buyFrom&&t.buyFrom.name?t.buyFrom.name.split(" ")[0]:"")+' → '+(t.sellTo&&t.sellTo.name?t.sellTo.name.split(" ")[0]:"")+'</div>'+
+      '</div></div>';
   } else {
-    // En dar makas — altın + döviz, firma / alış-satış / TL fark + küçük bayrak
-    var spreads = [];
-    MATCHERS.forEach(function(m){
-      var qs = collectQuotes(m.match);
-      if(qs.length < 1) return;
-      var best = qs.slice().sort(function(a,b){ return (a.satis-a.alis)-(b.satis-b.alis); })[0];
-      if(!best) return;
-      var mk = best.satis - best.alis;
-      var pct = best.alis > 0 ? (mk/best.alis)*100 : 0;
-      var isAltin = /HAS|AYAR|CEY|YARIM|TAM|ATA|ALTIN|HAS24|AYAR22/i.test(m.id+" "+m.label);
-      spreads.push({
-        label: m.label, id: m.id, firm: best.name, firmKey: best.src,
-        alis: best.alis, satis: best.satis, mk: mk, pct: pct, altin: isAltin
+    /* En dar makas döviz — solda zaten yayınlanan ürünlerin en darı döviz ise bir sonraki dövizi seç */
+    var leftIds = {HAS:1,AYAR24:1,AYAR22:1,CEYREK:1,YARIM:1,TAM:1,ATA:1,USD:1,EUR:1,HAS24:1};
+    var fxList = [];
+    ["USD","EUR","GBP","CHF","AUD","CAD","SAR","JPY","GEL","AZN"].forEach(function(pid){
+      var qs = quotesForId(pid);
+      qs.forEach(function(q){
+        if(q.alis==null||q.satis==null||isNaN(q.alis)||isNaN(q.satis)) return;
+        var m = Number(q.satis) - Number(q.alis);
+        if(m < 0) return;
+        fxList.push({ id:pid, label:pid, makas:m, alis:q.alis, satis:q.satis, firm:q.name, firmKey:q.firm });
       });
     });
-    spreads.sort(function(a,b){ return a.pct - b.pct; });
-    var topGold = spreads.filter(function(s){ return s.altin; })[0];
-    var topFx = spreads.filter(function(s){ return !s.altin; })[0];
-    // yedek: en dar 2 (karışık)
-    var pick = [];
-    if(topGold) pick.push(topGold);
-    if(topFx) pick.push(topFx);
-    if(pick.length < 2){
-      spreads.forEach(function(s){
-        if(pick.length >= 2) return;
-        if(pick.indexOf(s) < 0) pick.push(s);
+    fxList.sort(function(a,b){ return a.makas - b.makas; });
+
+    /* soldaki kartların en dar makası */
+    var leftMin = 1e9, leftMinIsFx = false, leftMinId = null;
+    cardIds.forEach(function(c){
+      var qs = quotesForId(c.id);
+      qs.forEach(function(q){
+        if(q.alis==null||q.satis==null||isNaN(q.alis)||isNaN(q.satis)) return;
+        var m = Number(q.satis) - Number(q.alis);
+        if(m >= 0 && m < leftMin){
+          leftMin = m;
+          leftMinId = c.id;
+          leftMinIsFx = (c.id==="USD"||c.id==="EUR");
+        }
       });
+    });
+
+    var best = null;
+    for(var fi=0; fi<fxList.length; fi++){
+      var cand = fxList[fi];
+      /* En dar genel makas soldaki bir döviz kartıysa (USD/EUR) → aynı id'yi atla, sonraki dövize geç */
+      if(leftMinIsFx && cand.id === leftMinId) continue;
+      /* Soldaki altın en darsa → en dar dövizi göster (continue yok) */
+      best = cand;
+      break;
     }
-    function lineHtml(s){
-      if(!s) return "";
-      var fl = "";
-      if(!s.altin && typeof flagFor === "function"){
-        fl = flagFor(s.id, s.label, "doviz") || "";
-      }
-      var firmShort = (s.firm||"").split(" ")[0];
-      return '<div class="nd-line">'+
-        '<div class="nd-top">'+fl+'<b class="nd-code">'+s.label+'</b>'+
-          '<span class="nd-pct">%'+s.pct.toFixed(2)+'</span></div>'+
-        '<div class="nd-firm">'+((typeof firmLogo==="function" && s.firmKey)?firmLogo(s.firmKey):"")+firmShort+'</div>'+
-        '<div class="nd-prices">A <b>'+fmt(s.alis)+'</b> · S <b class="satis">'+fmt(s.satis)+'</b></div>'+
-        '<div class="nd-tl">Makas <b>'+fmt(s.mk)+'</b> ₺</div>'+
-      '</div>';
+    if(!best && fxList.length) best = fxList[0];
+
+    if(best){
+      var fl2 = "";
+      try { if(typeof flagFor==="function") fl2 = flagFor(best.id,best.label,"doviz")||""; } catch(e){}
+      var logo2 = "";
+      try { if(best.firmKey && typeof firmLogo==="function") logo2 = firmLogo(best.firmKey); } catch(e){}
+      html += '<div class="sum-card sum-prod-card sum-tail clickable" id="sumArbCard" data-go="arb" title="En dar makas döviz">'+
+        '<div class="lbl">📐 En dar makas</div>'+
+        '<div class="sum-as">'+
+          '<div class="sum-a"><span class="k">Döviz</span><span class="v" style="font-size:13px;color:var(--text)">'+fl2+' '+best.id+'</span></div>'+
+          '<div class="sum-s"><span class="k">Makas</span><span class="v">'+fmt(best.makas)+'</span>'+
+          '<span class="f">'+(best.firm||"").split(" ")[0]+(logo2?'<span class="f-logo">'+logo2+'</span>':'')+'</span></div>'+
+          '<div class="f sum-as-line">A '+fmt(best.alis)+' · S '+fmt(best.satis)+'</div>'+
+        '</div></div>';
     }
-    var lines = pick.map(lineHtml).join("");
-    var head = pick[0] ? (pick[0].label+' %'+pick[0].pct.toFixed(2)) : "—";
-    html += '<div class="sum-card clickable nd-card" id="sumArbCard" data-go="arb">'+
-      '<div class="lbl">En dar makas</div>'+
-      '<div class="val" style="font-size:15px">'+head+'</div>'+
-      lines+
-      '<div class="sub" style="margin-top:6px;color:var(--muted)">Fırsat yok · tıkla → Arbitraj</div></div>';
   }
+
   var el = document.getElementById("sumRow");
-  if(el) el.innerHTML = html;
+  if(el) el.innerHTML = html || '<div class="sum-card"><div class="sub">Veri yükleniyor…</div></div>';
 }
+
+
 
 function renderFirmMenu(){
   var menu=document.getElementById("firmMenu");
