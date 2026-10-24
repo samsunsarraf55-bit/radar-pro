@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RADAR PRO</title>
+<script>
+(function(){
+  var candidates = [
+    "radar-pro-latest (4).html",
+    "radar-pro-latest.html",
+    "./radar-pro-latest%20(4).html"
+  ];
+  function tryNext(i){
+    if(i >= candidates.length){
+      document.body.innerHTML = '<p style="font-family:system-ui;padding:40px">Uygulama dosyas\u0131 bulunamad\u0131. Repo k\u00f6k\u00fcne radar-pro-latest.html ekleyin.</p>';
+      return;
+    }
+    var name = candidates[i];
+    fetch(encodeURI(name)).then(function(r){
+      if(!r.ok) throw new Error('fail');
+      return r.text();
+    }).then(function(t){
+      if(t.indexOf('firmGrid') >= 0 || t.indexOf('STANDARD_NAMES') >= 0 || t.indexOf('RADAR') >= 0){
+        document.open();
+        document.write(t);
+        document.close();
+      } else tryNext(i + 1);
+    }).catch(function(){ tryNext(i + 1); });
+  }
+  tryNext(0);
+})();
+</script>
+</head>
+<body style="font-family:system-ui;padding:40px;background:#0f172a;color:#e2e8f0">RADAR PRO y\u00fckleniyor\u2026</body>
+</html>
