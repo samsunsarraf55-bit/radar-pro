@@ -8,25 +8,21 @@
 (function(){
   var candidates = [
     "radar-pro-latest (4).html",
-    "radar-pro-latest.html",
-    "./radar-pro-latest%20(4).html"
+    "radar-pro-latest.html"
   ];
   function tryNext(i){
     if(i >= candidates.length){
-      document.body.innerHTML = '<p style="font-family:system-ui;padding:40px">Uygulama dosyas\u0131 bulunamad\u0131. Repo k\u00f6k\u00fcne radar-pro-latest.html ekleyin.</p>';
+      document.body.innerHTML = "<p style=\"font-family:system-ui;padding:40px\">Uygulama HTML bulunamad\u0131.</p>";
       return;
     }
-    var name = candidates[i];
-    fetch(encodeURI(name)).then(function(r){
-      if(!r.ok) throw new Error('fail');
+    fetch(encodeURI(candidates[i])).then(function(r){
+      if(!r.ok) throw new Error("x");
       return r.text();
     }).then(function(t){
-      if(t.indexOf('firmGrid') >= 0 || t.indexOf('STANDARD_NAMES') >= 0 || t.indexOf('RADAR') >= 0){
-        document.open();
-        document.write(t);
-        document.close();
-      } else tryNext(i + 1);
-    }).catch(function(){ tryNext(i + 1); });
+      if(t.indexOf("firmGrid")>=0 || t.indexOf("STANDARD_NAMES")>=0){
+        document.open(); document.write(t); document.close();
+      } else tryNext(i+1);
+    }).catch(function(){ tryNext(i+1); });
   }
   tryNext(0);
 })();
