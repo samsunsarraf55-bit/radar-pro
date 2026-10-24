@@ -1793,6 +1793,258 @@
       text-overflow:ellipsis;
     }
 
+  
+    /* ===== Mobil: üst şerit + özet kartlar ===== */
+    @media (max-width: 768px) {
+      .ticker-inner{
+        display:grid!important;
+        grid-template-columns:1fr 1fr!important;
+        gap:6px!important;
+        padding:8px!important;
+        overflow-x:visible!important;
+        white-space:normal!important;
+        font-size:11px!important;
+      }
+      .ticker-inner .tick{
+        display:flex!important;
+        flex-direction:column!important;
+        align-items:flex-start!important;
+        gap:2px!important;
+        padding:8px 10px!important;
+        border-radius:12px!important;
+        white-space:normal!important;
+        min-width:0!important;
+        width:100%!important;
+        box-sizing:border-box;
+      }
+      .ticker-inner .tick .tick-label{
+        display:block;
+        font-size:10px;
+        font-weight:700;
+        color:var(--muted);
+        margin-bottom:2px;
+      }
+      .ticker-inner .tick b{
+        font-size:12px;
+        font-variant-numeric:tabular-nums;
+      }
+      .ticker-inner .tick .tick-n{
+        font-size:9px;
+        opacity:.7;
+      }
+      /* Altın satırları tam genişlik (ilk ~7 tick) — grid span */
+      .ticker-inner .tick.tick-gold{
+        grid-column:1 / -1;
+      }
+
+      .sum-row-global{
+        display:grid!important;
+        grid-template-columns:1fr 1fr!important;
+        gap:8px!important;
+        overflow-x:visible!important;
+        flex-wrap:unset!important;
+        padding:4px 2px 8px!important;
+        margin:4px 0 10px!important;
+      }
+      .sum-row-global .sum-card,
+      .sum-row-global .sum-prod-card{
+        width:auto!important;
+        min-width:0!important;
+        max-width:none!important;
+        flex:unset!important;
+        padding:10px!important;
+        border-radius:12px!important;
+        box-sizing:border-box;
+      }
+      .sum-row-global .sum-tail{
+        grid-column:1 / -1;
+        width:auto!important;
+        min-width:0!important;
+        max-width:none!important;
+      }
+      .sum-prod-card .lbl{
+        font-size:11px!important;
+        font-weight:800!important;
+        margin-bottom:8px!important;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        display:block!important;
+        min-height:1.2em;
+      }
+      .sum-prod-card .sum-as{gap:8px!important}
+      .sum-prod-card .k{
+        display:block!important;
+        width:100%!important;
+        font-size:9px!important;
+        color:var(--muted)!important;
+        margin-bottom:2px!important;
+      }
+      .sum-prod-card .vf{
+        display:flex!important;
+        flex-direction:row!important;
+        flex-wrap:nowrap!important;
+        align-items:center!important;
+        justify-content:space-between!important;
+        gap:6px!important;
+        width:100%!important;
+      }
+      .sum-prod-card .vf .v{
+        font-size:15px!important;
+        font-weight:800!important;
+        font-variant-numeric:tabular-nums;
+      }
+      .sum-prod-card .vf .f{
+        font-size:11px!important;
+        font-weight:600!important;
+        margin:0!important;
+        max-width:45%;
+      }
+      .sum-prod-card .f img.firm-logo,
+      .sum-prod-card .f .firm-logo-badge,
+      .sum-prod-card .f-logo img.firm-logo,
+      .sum-prod-card .f-logo .firm-logo-badge{
+        width:14px!important;height:14px!important;
+      }
+      .wrap{padding:6px 8px 56px!important}
+    }
+    @media (max-width: 380px) {
+      .sum-row-global{grid-template-columns:1fr!important}
+      .ticker-inner{grid-template-columns:1fr!important}
+    }
+
+  
+    /* ========== MOBİL PRO (tüm uygulama) ========== */
+    @media (max-width: 768px) {
+      body{font-size:13px;-webkit-tap-highlight-color:transparent}
+      .wrap{padding:6px 8px 72px!important;max-width:100%}
+
+      /* Üst bar */
+      .topnav{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);background:rgba(255,255,255,.92);border-bottom:1px solid var(--border)}
+      [data-theme="dark"] .topnav{background:rgba(15,23,42,.92)}
+      .topnav-inner{
+        display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+        gap:8px!important;padding:8px 10px!important;
+      }
+      .brand{flex:1 1 auto;min-width:0;gap:8px}
+      .brand svg{width:28px!important;height:28px!important;flex-shrink:0}
+      .brand h1{font-size:15px!important;margin:0;line-height:1.1}
+      .brand small{display:none!important}
+      .nav-links{
+        display:flex!important;flex-wrap:nowrap!important;gap:4px!important;
+        width:100%;order:3;overflow-x:auto;-webkit-overflow-scrolling:touch;
+        padding-bottom:2px;scrollbar-width:none;
+      }
+      .nav-links::-webkit-scrollbar{display:none}
+      .nav-btn{
+        flex:0 0 auto!important;padding:8px 12px!important;font-size:12px!important;
+        border-radius:999px!important;white-space:nowrap;
+      }
+      .nav-btn.icon-only,.icon-btn{
+        width:36px!important;height:36px!important;padding:0!important;
+        border-radius:10px!important;flex-shrink:0;
+      }
+
+      /* Ticker */
+      .ticker-inner{
+        display:grid!important;grid-template-columns:1fr 1fr!important;
+        gap:6px!important;padding:8px!important;overflow:visible!important;
+        white-space:normal!important;
+      }
+      .ticker-inner .tick{
+        display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+        gap:3px!important;padding:8px 10px!important;border-radius:12px!important;
+        white-space:normal!important;width:100%!important;min-width:0!important;box-sizing:border-box;
+      }
+      .ticker-inner .tick.tick-gold{grid-column:1 / -1}
+      .tick-label{font-size:10px;font-weight:700;color:var(--muted)}
+      .tick-prices{font-size:12px;font-variant-numeric:tabular-nums}
+
+      /* Özet kartlar */
+      .sum-row-global{
+        display:grid!important;grid-template-columns:1fr 1fr!important;
+        gap:8px!important;overflow:visible!important;padding:4px 0 10px!important;
+      }
+      .sum-row-global .sum-card,
+      .sum-row-global .sum-prod-card{
+        width:auto!important;min-width:0!important;max-width:none!important;
+        padding:10px!important;border-radius:12px!important;
+      }
+      .sum-row-global .sum-tail{grid-column:1 / -1}
+      .sum-prod-card .lbl{font-size:11px!important;font-weight:800!important;margin-bottom:6px!important}
+      .sum-prod-card .vf{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%}
+      .sum-prod-card .vf .v{font-size:14px!important}
+      .sum-prod-card .vf .f{font-size:11px!important;margin:0!important}
+
+      /* Filtre / arama */
+      .firm-bar{flex-direction:column!important;align-items:stretch!important;gap:8px!important}
+      .search{width:100%!important;font-size:16px!important;padding:10px 12px!important;border-radius:12px!important}
+      .filters{display:flex;flex-wrap:wrap;gap:6px}
+      .chip{padding:8px 12px!important;font-size:12px!important;border-radius:999px!important}
+
+      /* Firma grid */
+      .firm-grid{
+        display:grid!important;
+        grid-template-columns:1fr!important;
+        gap:10px!important;
+      }
+      .firm-col{
+        border-radius:14px!important;overflow:hidden;
+        border:1px solid var(--border);
+        background:var(--card);
+      }
+      .firm-head{
+        padding:10px 12px!important;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+      }
+      .firm-head h3{font-size:14px!important;gap:6px}
+      .firm-col table{width:100%;font-size:12px}
+      .firm-col th,.firm-col td{padding:8px 8px!important;vertical-align:middle}
+      .firm-col .prod-short{font-size:12px!important;font-weight:700}
+      .firm-col .a{color:#16a34a;font-weight:700;font-variant-numeric:tabular-nums}
+      .firm-col .s{color:#dc2626;font-weight:700;font-variant-numeric:tabular-nums}
+
+      /* Karşılaştırma */
+      .cmp-cards{display:flex;flex-direction:column;gap:10px}
+      .cmp-card{
+        border-radius:14px!important;padding:12px!important;
+        border:1px solid var(--border);background:var(--card);
+      }
+      .cmp-card-firms{
+        display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;
+      }
+      .cmp-firm-box{padding:8px;border-radius:10px;border:1px solid var(--border);font-size:12px}
+
+      /* Arbitraj */
+      .arb-list,.arb-card{border-radius:14px}
+      .cmp-matrix-wrap{
+        max-height:none!important;
+        border-radius:12px!important;
+        -webkit-overflow-scrolling:touch;
+      }
+      .cmp-matrix{font-size:11px}
+      .cmp-matrix th,.cmp-matrix td{padding:8px 6px!important}
+
+      /* Ayarlar */
+      .settings-grid{grid-template-columns:1fr!important;gap:12px!important}
+      .set-card{border-radius:14px!important;padding:14px!important}
+      .firm-order-cards{grid-template-columns:repeat(2,1fr)!important}
+
+      /* Modal genel */
+      .modal-bg.open{align-items:flex-end!important;padding:0!important}
+      .modal-bg .modal{
+        width:100%!important;max-width:100%!important;
+        max-height:90dvh!important;border-radius:16px 16px 0 0!important;
+      }
+    }
+    @media (max-width: 380px) {
+      .sum-row-global{grid-template-columns:1fr!important}
+      .ticker-inner{grid-template-columns:1fr!important}
+      .cmp-card-firms{grid-template-columns:1fr!important}
+    }
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .firm-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+    }
+
   </style>
 </head>
 <body>
@@ -3217,7 +3469,6 @@ function renderTicker(){
   var keys = [
     { id:"HAS", label:"AU (HAS)" },
     { id:"AYAR24", label:"24 AYAR" },
-    { id:"HAS24", label:"24 AYAR" },
     { id:"AYAR22", label:"22 AYAR" },
     { id:"CEYREK", label:"ÇEYREK" },
     { id:"YARIM", label:"YARIM" },
@@ -3257,11 +3508,12 @@ function renderTicker(){
     var avgA = alis.length ? alis.reduce(function(s,x){return s+x;},0)/alis.length : null;
     var avgS = satis.length ? satis.reduce(function(s,x){return s+x;},0)/satis.length : null;
     var n = Math.max(alis.length, satis.length);
+    var isGold = /HAS|AYAR|CEYREK|YARIM|TAM|ATA|RESAT|GUMUS/i.test(item.id);
     ticks.push(
-      '<span class="tick'+(arbIds[item.id]?' has-arb':'')+'"'+(arbIds[item.id]?' title="Arbitraj fırsatı var"':'')+'>'+
-        '<span class="tick-label">'+item.label+(arbIds[item.id]?' ⚡':'')+'</span> '+
-        '<b>'+fmt(avgA)+'</b><span class="tick-sep">/</span><b class="satis">'+fmt(avgS)+'</b> '+
-        '<span class="tick-n">('+n+')</span>'+
+      '<span class="tick'+(isGold?' tick-gold':'')+(arbIds[item.id]?' has-arb':'')+'"'+(arbIds[item.id]?' title="Arbitraj fırsatı var"':'')+'>'+
+        '<span class="tick-label">'+item.label+(arbIds[item.id]?' ⚡':'')+'</span>'+
+        '<span class="tick-prices"><b>'+fmt(avgA)+'</b><span class="tick-sep"> / </span><b class="satis">'+fmt(avgS)+'</b> '+
+        '<span class="tick-n">('+n+')</span></span>'+
       '</span>'
     );
   });
@@ -3352,58 +3604,74 @@ function renderSummary(){
         '<div class="f" style="margin-top:4px">'+(t.buyFrom&&t.buyFrom.name?t.buyFrom.name.split(" ")[0]:"")+' → '+(t.sellTo&&t.sellTo.name?t.sellTo.name.split(" ")[0]:"")+'</div>'+
       '</div></div>';
   } else {
-    /* En dar makas döviz — solda zaten yayınlanan ürünlerin en darı döviz ise bir sonraki dövizi seç */
-    var leftIds = {HAS:1,AYAR24:1,AYAR22:1,CEYREK:1,YARIM:1,TAM:1,ATA:1,USD:1,EUR:1,HAS24:1};
+    /* En dar makas — piyasa: tüm kaynaklarda max alış vs min satış */
+    var fxIds = ["USD","EUR","GBP","CHF","AUD","CAD","SAR","JPY","GEL","AZN","RUB"];
+    var leftFx = {USD:1, EUR:1};
     var fxList = [];
-    ["USD","EUR","GBP","CHF","AUD","CAD","SAR","JPY","GEL","AZN"].forEach(function(pid){
+    fxIds.forEach(function(pid){
       var qs = quotesForId(pid);
+      if(!qs.length) return;
+      var maxA = null, minS = null, maxF = null, minF = null, maxK = null, minK = null;
       qs.forEach(function(q){
-        if(q.alis==null||q.satis==null||isNaN(q.alis)||isNaN(q.satis)) return;
-        var m = Number(q.satis) - Number(q.alis);
-        if(m < 0) return;
-        fxList.push({ id:pid, label:pid, makas:m, alis:q.alis, satis:q.satis, firm:q.name, firmKey:q.firm });
-      });
-    });
-    fxList.sort(function(a,b){ return a.makas - b.makas; });
-
-    /* soldaki kartların en dar makası */
-    var leftMin = 1e9, leftMinIsFx = false, leftMinId = null;
-    cardIds.forEach(function(c){
-      var qs = quotesForId(c.id);
-      qs.forEach(function(q){
-        if(q.alis==null||q.satis==null||isNaN(q.alis)||isNaN(q.satis)) return;
-        var m = Number(q.satis) - Number(q.alis);
-        if(m >= 0 && m < leftMin){
-          leftMin = m;
-          leftMinId = c.id;
-          leftMinIsFx = (c.id==="USD"||c.id==="EUR");
+        if(q.alis!=null && !isNaN(q.alis)){
+          if(maxA==null || q.alis > maxA){ maxA = q.alis; maxF = q.name; maxK = q.firm; }
+        }
+        if(q.satis!=null && !isNaN(q.satis) && q.satis > 0){
+          if(minS==null || q.satis < minS){ minS = q.satis; minF = q.name; minK = q.firm; }
         }
       });
+      if(maxA==null || minS==null) return;
+      var m = Number(minS) - Number(maxA);
+      fxList.push({
+        id: pid, label: pid, makas: m,
+        alis: maxA, satis: minS,
+        firmAlis: maxF, firmSatis: minF,
+        keyAlis: maxK, keySatis: minK,
+        absMakas: Math.abs(m)
+      });
+    });
+    /* dar = en küçük mutlak piyasa makası (önce pozitif dar, yoksa en az negatif/arb) */
+    fxList.sort(function(a,b){
+      var pa = a.makas >= 0 ? a.makas : 1e6 + a.absMakas;
+      var pb = b.makas >= 0 ? b.makas : 1e6 + b.absMakas;
+      return pa - pb;
     });
 
+    /* Soldaki USD/EUR kartının piyasa makası en darsa sonraki dövize geç */
     var best = null;
     for(var fi=0; fi<fxList.length; fi++){
       var cand = fxList[fi];
-      /* En dar genel makas soldaki bir döviz kartıysa (USD/EUR) → aynı id'yi atla, sonraki dövize geç */
-      if(leftMinIsFx && cand.id === leftMinId) continue;
-      /* Soldaki altın en darsa → en dar dövizi göster (continue yok) */
+      if(leftFx[cand.id] && fi===0 && fxList.length>1){
+        /* ilk aday solda zaten varsa ve daha dar başka döviz varsa atla — ama piyasa en darı buysa yine de gösterilebilir;
+           kullanıcı: yayınlananlardan biri ise bir sonrakini göster */
+        continue;
+      }
       best = cand;
       break;
     }
     if(!best && fxList.length) best = fxList[0];
+    /* soldaki en dar döviz ile aynıysa bir sonrakini al */
+    if(best && leftFx[best.id] && fxList.length>1){
+      for(var fj=0; fj<fxList.length; fj++){
+        if(!leftFx[fxList[fj].id]){ best = fxList[fj]; break; }
+      }
+    }
 
     if(best){
       var fl2 = "";
       try { if(typeof flagFor==="function") fl2 = flagFor(best.id,best.label,"doviz")||""; } catch(e){}
-      var logo2 = "";
-      try { if(best.firmKey && typeof firmLogo==="function") logo2 = firmLogo(best.firmKey); } catch(e){}
-      html += '<div class="sum-card sum-prod-card sum-tail clickable" id="sumArbCard" data-go="arb" title="En dar makas döviz">'+
+      var logoA = "", logoS = "";
+      try { if(best.keyAlis && typeof firmLogo==="function") logoA = firmLogo(best.keyAlis); } catch(e){}
+      try { if(best.keySatis && typeof firmLogo==="function") logoS = firmLogo(best.keySatis); } catch(e){}
+      var firmAlisShort = (best.firmAlis||"").split(" ")[0];
+      var firmSatisShort = (best.firmSatis||"").split(" ")[0];
+      html += '<div class="sum-card sum-prod-card sum-tail clickable" id="sumArbCard" data-go="arb" title="Piyasa makası: max alış − min satış">'+
         '<div class="lbl">📐 En dar makas</div>'+
         '<div class="sum-as">'+
           '<div class="sum-a"><span class="k">Döviz</span><span class="v" style="font-size:13px;color:var(--text)">'+fl2+' '+best.id+'</span></div>'+
-          '<div class="sum-s"><span class="k">Makas</span><span class="v">'+fmt(best.makas)+'</span>'+
-          '<span class="f">'+(best.firm||"").split(" ")[0]+(logo2?'<span class="f-logo">'+logo2+'</span>':'')+'</span></div>'+
-          '<div class="f sum-as-line">A '+fmt(best.alis)+' · S '+fmt(best.satis)+'</div>'+
+          '<div class="sum-s"><span class="k">Piyasa makası</span><span class="v">'+(best.makas<0?"−":"")+fmt(Math.abs(best.makas))+'</span></div>'+
+          '<div class="f sum-as-line">A max '+fmt(best.alis)+' <span class="f">'+firmAlisShort+(logoA?'<span class="f-logo">'+logoA+'</span>':'')+'</span></div>'+
+          '<div class="f sum-as-line">S min '+fmt(best.satis)+' <span class="f">'+firmSatisShort+(logoS?'<span class="f-logo">'+logoS+'</span>':'')+'</span></div>'+
         '</div></div>';
     }
   }
