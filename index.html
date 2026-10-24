@@ -6,22 +6,27 @@
 <title>RADAR PRO</title>
 <script>
 (function(){
-  var candidates = [
-    "radar-pro-latest (4).html",
-    "radar-pro-latest.html"
-  ];
+  try { localStorage.removeItem("radar_proxy_base"); } catch(e){}
+  var candidates = ["radar-pro-latest (4).html", "radar-pro-latest.html"];
   function tryNext(i){
     if(i >= candidates.length){
-      document.body.innerHTML = "<p style=\"font-family:system-ui;padding:40px\">Uygulama HTML bulunamad\u0131.</p>";
+      document.body.innerHTML = "<p style=\"font-family:system-ui;padding:40px\">HTML bulunamad\u0131.</p>";
       return;
     }
     fetch(encodeURI(candidates[i])).then(function(r){
       if(!r.ok) throw new Error("x");
       return r.text();
     }).then(function(t){
-      if(t.indexOf("firmGrid")>=0 || t.indexOf("STANDARD_NAMES")>=0){
-        document.open(); document.write(t); document.close();
-      } else tryNext(i+1);
+      if(t.indexOf("firmGrid") < 0 && t.indexOf("STANDARD_NAMES") < 0) return tryNext(i+1);
+      /* Netlify Functions /api kullan; Cloudflare Worker'a gitme */
+      t = t.replace(/var DEFAULT_PUBLIC_PROXY\s*=\s*"[^"]*"/, 'var DEFAULT_PUBLIC_PROXY = ""');
+      t = t.replace(
+        /if\(\/workers\\\.dev\$[\s\S]*?return "";/,
+        'if(/workers\\.dev$|trycloudflare\\.com$|localhost|127\\.0\\.0\\.1|:8787|netlify\\.app$/i.test(host)) return "";'
+      );
+      document.open();
+      document.write(t);
+      document.close();
     }).catch(function(){ tryNext(i+1); });
   }
   tryNext(0);
