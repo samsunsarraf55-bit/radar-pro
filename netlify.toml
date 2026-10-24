@@ -1,9 +1,46 @@
 [build]
   publish = "."
+  functions = "netlify/functions"
 
 [[redirects]]
-  from = "/api/*"
-  to = "https://fancy-scene-36a5.samsunsarraf55.workers.dev/api/:splat"
+  from = "/api/sar"
+  to = "/.netlify/functions/sar"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/altinkose"
+  to = "/.netlify/functions/altinkose"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/ilkay"
+  to = "/.netlify/functions/ilkay"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/kaptan"
+  to = "/.netlify/functions/kaptan"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/gunes"
+  to = "/.netlify/functions/gunes"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/solis"
+  to = "/.netlify/functions/solis"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/vizyon"
+  to = "/.netlify/functions/vizyon"
   status = 200
   force = true
 
