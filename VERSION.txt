@@ -1,3 +1,4 @@
-RADAR PRO build 2026-10-25T19:00:23Z
-features: proxy-fix,file-proto-banner,health-boot,error-display,openSumDetail,fmtGold,fmtFx,theme,mobile-compact
-
+fmtGold/fmtFx fix — 2026-10-26
+fmtGold: 2 decimals for gold
+fmtFx: 2-3 decimals for FX
+Root cause: ReferenceError fmtGold is not defined broke renderFirmGrid
