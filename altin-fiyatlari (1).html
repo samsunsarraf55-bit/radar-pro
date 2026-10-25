@@ -2495,6 +2495,17 @@ function loadSettings(){
 }
 function saveSettings(){ localStorage.setItem("radar_settings", JSON.stringify(settings)); }
 
+function fmtGold(n){
+  if(n==null||isNaN(Number(n))) return "—";
+  return Number(n).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtFx(n){
+  if(n==null||isNaN(Number(n))) return "—";
+  var x = Number(n);
+  var third = Math.round(Math.abs(x) * 1000) % 10;
+  var d = (third === 0) ? 2 : 3;
+  return x.toLocaleString("tr-TR",{minimumFractionDigits:d,maximumFractionDigits:d});
+}
 function fmt(n,d){
   if(n==null||isNaN(Number(n))) return "—";
   var x = Number(n);
