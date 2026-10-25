@@ -12,8 +12,10 @@ const CORS_HEADERS = {
 
 const HTML_URLS = [
   "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/radar-pro-latest.html",
-  "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/radar-pro-latest.html",
   "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/altin-fiyatlari.html",
+  "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/altin-fiyatlari%20(1).html",
+  "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/radar-pro-latest.html",
+  "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/altin-fiyatlari.html",
 ];
 
 const SOURCES = {
@@ -66,7 +68,7 @@ function json(data, status) {
 
 function parseIlkayHtml(html) {
   var rates = [], seen = {};
-  var m, mainRe = /currency-name">\s*([^<]+)\s*<\/span>[\s\S]*?buy-price">\s*<span>([^<]+)<\/span>[\s\S]*?sell-price">\s*<span>([^<]+)<\/span>/gi;
+  var m, mainRe = /currency-name\">\\s*([^<]+)\\s*<\\/span>[\\s\\S]*?buy-price\">\\s*<span>([^<]+)<\\/span>[\\s\\S]*?sell-price\">\\s*<span>([^<]+)<\\/span>/gi;
   while ((m = mainRe.exec(html))) {
     var code = m[1].trim().toUpperCase();
     if (seen[code]) continue;
@@ -76,7 +78,7 @@ function parseIlkayHtml(html) {
     seen[code] = 1;
     rates.push({ code: code, alis: alis, satis: satis });
   }
-  var tickRe = /ticker-item">\s*([A-Z]{3})\s*<span class="ticker-buy">([^<]+)<\/span>\s*<span class="ticker-sep">\/<\/span>\s*<span class="ticker-sell">([^<]+)<\/span>/gi;
+  var tickRe = /ticker-item\">\\s*([A-Z]{3})\\s*<span class=\"ticker-buy\">([^<]+)<\\/span>\\s*<span class=\"ticker-sep\">\\/<\\/span>\\s*<span class=\"ticker-sell\">([^<]+)<\\/span>/gi;
   while ((m = tickRe.exec(html))) {
     var c = m[1].toUpperCase();
     if (seen[c]) continue;
@@ -119,7 +121,7 @@ async function fetchVizyon() {
     ws.addEventListener("message", function (ev) {
       var d = String(ev.data);
       if (d.charAt(0) === "0") { ws.send("40"); return; }
-      if (d.indexOf("40") === 0) { ws.send('42["get_prices"]'); return; }
+      if (d.indexOf("40") === 0) { ws.send('42[\"get_prices\"]'); return; }
       if (d.indexOf("42") === 0 && d.indexOf("price_changed") !== -1) {
         try {
           var payload = JSON.parse(d.slice(2));
@@ -179,7 +181,7 @@ export default {
     if (url.pathname === "/api/health" || url.pathname === "/health") {
       return json({ ok: true, time: new Date().toISOString(), service: "radar-worker" });
     }
-    var m = url.pathname.match(/^\/api\/(kaptan|gunes|solis|sar|altinkose|ilkay|vizyon)$/);
+    var m = url.pathname.match(/^\\/api\\/(kaptan|gunes|solis|sar|altinkose|ilkay|vizyon)$/);
     if (m) {
       var key = m[1];
       try {
