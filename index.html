@@ -10,13 +10,24 @@
 (async function(){
   try { localStorage.removeItem("radar_proxy_base"); } catch(e){}
   try {
-    const r = await fetch("radar-pro-latest.html?t=" + Date.now());
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    let html = await r.text();
+    const nSeg = 6, nPiece = 3;
+    let b64 = "";
+    for (let i = 0; i < nSeg; i++) {
+      for (let j = 0; j < nPiece; j++) {
+        const r = await fetch("chunks/seg" + i + "_" + j + ".b64?t=" + Date.now());
+        if (!r.ok) throw new Error("seg"+i+"_"+j+" "+r.status);
+        b64 += (await r.text()).trim();
+      }
+    }
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const ds = new DecompressionStream("gzip");
+    let html = await new Response(new Blob([bytes]).stream().pipeThrough(ds)).text();
     html = html.replace(/var DEFAULT_PUBLIC_PROXY\s*=\s*"[^"]*"/, 'var DEFAULT_PUBLIC_PROXY = ""');
     document.open(); document.write(html); document.close();
   } catch(e) {
-    document.body.innerHTML = "<p>Yükleme hatası: "+e+"</p><p><a href='radar-pro-latest.html' style='color:#38bdf8'>Doğrudan aç</a></p>";
+    document.body.innerHTML = "<p>Yükleme hatası: "+e+"</p>";
   }
 })();
 </script>
