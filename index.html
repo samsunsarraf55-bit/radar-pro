@@ -4,34 +4,28 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RADAR PRO</title>
-<script>
-(function(){
-  try { localStorage.removeItem("radar_proxy_base"); } catch(e){}
-  var candidates = ["radar-pro-latest (4).html", "radar-pro-latest.html"];
-  function tryNext(i){
-    if(i >= candidates.length){
-      document.body.innerHTML = "<p style=\"font-family:system-ui;padding:40px\">HTML bulunamad\u0131.</p>";
-      return;
-    }
-    fetch(encodeURI(candidates[i])).then(function(r){
-      if(!r.ok) throw new Error("x");
-      return r.text();
-    }).then(function(t){
-      if(t.indexOf("firmGrid") < 0 && t.indexOf("STANDARD_NAMES") < 0) return tryNext(i+1);
-      /* Netlify Functions /api kullan; Cloudflare Worker'a gitme */
-      t = t.replace(/var DEFAULT_PUBLIC_PROXY\s*=\s*"[^"]*"/, 'var DEFAULT_PUBLIC_PROXY = ""');
-      t = t.replace(
-        /if\(\/workers\\\.dev\$[\s\S]*?return "";/,
-        'if(/workers\\.dev$|trycloudflare\\.com$|localhost|127\\.0\\.0\\.1|:8787|netlify\\.app$/i.test(host)) return "";'
-      );
-      document.open();
-      document.write(t);
-      document.close();
-    }).catch(function(){ tryNext(i+1); });
-  }
-  tryNext(0);
-})();
-</script>
 </head>
-<body style="font-family:system-ui;padding:40px;background:#0f172a;color:#e2e8f0">RADAR PRO y\u00fckleniyor\u2026</body>
+<body style="font-family:system-ui;padding:40px;background:#0f172a;color:#e2e8f0">RADAR PRO yükleniyor…</body>
+<script>
+(async function(){
+  try { localStorage.removeItem("radar_proxy_base"); } catch(e){}
+  const n = 2;
+  let b64 = "";
+  for (let i = 0; i < n; i++) {
+    const r = await fetch("chunks/app.p" + i + ".b64");
+    if (!r.ok) throw new Error("chunk " + i);
+    b64 += await r.text();
+  }
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const ds = new DecompressionStream("gzip");
+  const stream = new Blob([bytes]).stream().pipeThrough(ds);
+  let html = await new Response(stream).text();
+  html = html.replace(/var DEFAULT_PUBLIC_PROXY\s*=\s*"[^"]*"/, 'var DEFAULT_PUBLIC_PROXY = ""');
+  document.open(); document.write(html); document.close();
+})().catch(function(e){
+  document.body.innerHTML = "<p>Yükleme hatası: "+e+"</p><p><a href=\"radar-pro-latest.html\">Doğrudan aç</a></p>";
+});
+</script>
 </html>
