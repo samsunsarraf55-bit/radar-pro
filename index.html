@@ -4,27 +4,27 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RADAR PRO</title>
-<script>
-(function(){
-  try { localStorage.removeItem("radar_proxy_base"); } catch(e){}
-  var candidates = ["radar-pro-latest.html", "radar-pro-latest%20(4).html"];
-  function tryNext(i){
-    if(i >= candidates.length){
-      document.body.innerHTML = "<p style=\"font-family:system-ui;padding:40px\">HTML bulunamadı. GitHub'a <b>radar-pro-latest.html</b> yükleyin.</p>";
-      return;
-    }
-    fetch(candidates[i]).then(function(r){
-      if(!r.ok) throw new Error("x");
-      return r.text();
-    }).then(function(t){
-      if(t.indexOf("firmGrid") < 0 && t.indexOf("STANDARD_NAMES") < 0) return tryNext(i+1);
-      t = t.replace(/var DEFAULT_PUBLIC_PROXY\s*=\s*"[^"]*"/, 'var DEFAULT_PUBLIC_PROXY = ""');
-      document.open(); document.write(t); document.close();
-    }).catch(function(){ tryNext(i+1); });
-  }
-  tryNext(0);
-})();
-</script>
 </head>
 <body style="font-family:system-ui;padding:40px;background:#0f172a;color:#e2e8f0">RADAR PRO yükleniyor…</body>
+<script>
+(async function(){
+  try { localStorage.removeItem("radar_proxy_base"); } catch(e){}
+  const n = 6;
+  let b64 = "";
+  for (let i = 0; i < n; i++) {
+    const r = await fetch("chunks/seg" + i + ".b64?t=" + Date.now());
+    if (!r.ok) throw new Error("seg" + i + " " + r.status);
+    b64 += (await r.text()).trim();
+  }
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const ds = new DecompressionStream("gzip");
+  let html = await new Response(new Blob([bytes]).stream().pipeThrough(ds)).text();
+  html = html.replace(/var DEFAULT_PUBLIC_PROXY\s*=\s*"[^"]*"/, 'var DEFAULT_PUBLIC_PROXY = ""');
+  document.open(); document.write(html); document.close();
+})().catch(function(e){
+  document.body.innerHTML = "<p>Yükleme hatası: "+e+"</p>";
+});
+</script>
 </html>
