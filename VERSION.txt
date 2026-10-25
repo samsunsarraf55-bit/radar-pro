@@ -1,4 +1,4 @@
 fmtGold/fmtFx fix — 2026-10-26
-fmtGold: 2 decimals for gold
-fmtFx: 2-3 decimals for FX
 Root cause: ReferenceError fmtGold is not defined broke renderFirmGrid
+index.html patch-loader injects fmtGold+fmtFx
+worker.js also injects on serve (redeploy CF worker)

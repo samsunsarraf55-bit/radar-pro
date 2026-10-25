@@ -1,1 +1,54 @@
-LOADING_FROM_FILE_SEE_NEXT
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RADAR PRO</title>
+<style>
+body{margin:0;font-family:system-ui,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;min-height:100vh}
+#s{text-align:center;padding:24px}
+.spin{width:36px;height:36px;border:3px solid #334155;border-top-color:#14b8a6;border-radius:50%;animation:r .8s linear infinite;margin:0 auto 12px}
+@keyframes r{to{transform:rotate(360deg)}}
+.err{color:#f87171}
+</style>
+</head>
+<body>
+<div id="s"><div class="spin"></div><div id="m">RADAR PRO yükleniyor…</div></div>
+<script>
+(async function () {
+  var URLS = [
+    "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/altin-fiyatlari%20(1).html",
+    "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/altin-fiyatlari%20(1).html",
+    "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/altin-fiyatlari.html"
+  ];
+  var PATCH = "function fmtGold(n){if(n==null||isNaN(Number(n)))return\"—\";return Number(n).toLocaleString(\"tr-TR\",{minimumFractionDigits:2,maximumFractionDigits:2});}\\nfunction fmtFx(n){if(n==null||isNaN(Number(n)))return\"—\";var x=Number(n);var third=Math.round(Math.abs(x)*1000)%10;var d=(third===0)?2:3;return x.toLocaleString(\"tr-TR\",{minimumFractionDigits:d,maximumFractionDigits:d});}\\n";
+  var lastErr = null;
+  for (var i = 0; i < URLS.length; i++) {
+    try {
+      var r = await fetch(URLS[i] + "?t=" + Date.now(), { cache: "no-store" });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      var html = await r.text();
+      if (!html || html.length < 1000 || html.indexOf("<!DOCTYPE") < 0) throw new Error("geçersiz HTML");
+      if (html.indexOf("function fmtGold") < 0) {
+        if (html.indexOf("function fmt(n,d)") >= 0) {
+          html = html.replace("function fmt(n,d)", PATCH + "function fmt(n,d)");
+        } else if (html.indexOf("function rowKey") >= 0) {
+          html = html.replace("function rowKey", PATCH + "function rowKey");
+        } else {
+          html = html.replace("</script>", PATCH + "</script>");
+        }
+      }
+      document.open();
+      document.write(html);
+      document.close();
+      return;
+    } catch (e) {
+      lastErr = e;
+      console.warn("loader try", URLS[i], e);
+    }
+  }
+  document.getElementById("m").innerHTML = '<span class="err">Yükleme hatası: ' + ((lastErr && lastErr.message) || lastErr || "?") + "</span>";
+})();
+</script>
+</body>
+</html>
