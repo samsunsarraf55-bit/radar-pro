@@ -5,30 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RADAR PRO</title>
 </head>
-<body style="font-family:system-ui;padding:40px;background:#0f172a;color:#e2e8f0">RADAR PRO yükleniyor…</body>
+<body style="font-family:system-ui;background:#0f172a;color:#e2e8f0;padding:40px">
+RADAR PRO yükleniyor…
 <script>
 (async function(){
-  try { localStorage.removeItem("radar_proxy_base"); } catch(e){}
-  try {
-    const nSeg = 6, nPiece = 3;
-    let b64 = "";
-    for (let i = 0; i < nSeg; i++) {
-      for (let j = 0; j < nPiece; j++) {
-        const r = await fetch("chunks/seg" + i + "_" + j + ".b64?t=" + Date.now());
-        if (!r.ok) throw new Error("seg"+i+"_"+j+" "+r.status);
-        b64 += (await r.text()).trim();
-      }
-    }
-    const bin = atob(b64);
-    const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    const ds = new DecompressionStream("gzip");
-    let html = await new Response(new Blob([bytes]).stream().pipeThrough(ds)).text();
-    html = html.replace(/var DEFAULT_PUBLIC_PROXY\s*=\s*"[^"]*"/, 'var DEFAULT_PUBLIC_PROXY = ""');
-    document.open(); document.write(html); document.close();
-  } catch(e) {
-    document.body.innerHTML = "<p>Yükleme hatası: "+e+"</p>";
+  var urls = [
+    "radar-pro-latest.html?t="+Date.now(),
+    "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/radar-pro-latest.html?t="+Date.now(),
+    "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/radar-pro-latest.html?t="+Date.now()
+  ];
+  for (var i=0;i<urls.length;i++){
+    try{
+      var r=await fetch(urls[i],{cache:"no-store"});
+      if(!r.ok) throw new Error(r.status);
+      var html=await r.text();
+      if(html.indexOf("firmGrid")===-1) throw new Error("bad");
+      html=html.replace(/var DEFAULT_PUBLIC_PROXY\s*=\s*"[^"]*"/,
+        'var DEFAULT_PUBLIC_PROXY = "https://fancy-scene-36a5.samsunsarraf55.workers.dev"');
+      document.open(); document.write(html); document.close(); return;
+    }catch(e){}
   }
+  document.body.innerHTML='<p>Hata. <a style="color:#38bdf8" href="https://fancy-scene-36a5.samsunsarraf55.workers.dev/">Buradan açın</a></p>';
 })();
 </script>
+</body>
 </html>
