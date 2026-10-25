@@ -1,1 +1,44 @@
-PLACEHOLDER_WILL_FAIL
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RADAR PRO</title>
+<style>body{margin:0;font-family:system-ui;background:#0f172a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;min-height:100vh}.box{padding:28px;background:#151c27;border-radius:14px;border:1px solid #2a3548;text-align:center}a{color:#38bdf8}</style>
+</head>
+<body>
+<div class="box" id="box">RADAR PRO yükleniyor…</div>
+<script>
+(async function(){
+  var box=document.getElementById("box");
+  var host=(location.host||"").toLowerCase();
+  var isNetlify=/\.netlify\.app$/i.test(host);
+  var isWorker=/workers\.dev$/i.test(host);
+  var urls=[
+    "altin-fiyatlari%20(1).html?t="+Date.now(),
+    "altin-fiyatlari.html?t="+Date.now(),
+    "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/altin-fiyatlari%20(1).html?t="+Date.now(),
+    "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/altin-fiyatlari%20(1).html?t="+Date.now()
+  ];
+  var lastErr=null;
+  for(var i=0;i<urls.length;i++){
+    try{
+      var r=await fetch(urls[i],{cache:"no-store"});
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      var html=await r.text();
+      if(html.indexOf("firmGrid")===-1) throw new Error("geçersiz HTML");
+      if(isNetlify||isWorker){
+        html=html.replace(/var DEFAULT_PUBLIC_PROXY\s*=\s*"[^"]*"/,'var DEFAULT_PUBLIC_PROXY = ""');
+      } else {
+        html=html.replace(/var DEFAULT_PUBLIC_PROXY\s*=\s*"[^"]*"/,
+          'var DEFAULT_PUBLIC_PROXY = "https://fancy-scene-36a5.samsunsarraf55.workers.dev"');
+      }
+      document.open(); document.write(html); document.close(); return;
+    }catch(e){ lastErr=e; }
+  }
+  box.innerHTML="<p>Yükleme hatası: "+(lastErr&&lastErr.message?lastErr.message:lastErr)+"</p>"+
+    "<p><a href='https://fancy-scene-36a5.samsunsarraf55.workers.dev/'>Cloudflare Worker ile aç</a></p>";
+})();
+</script>
+</body>
+</html>
