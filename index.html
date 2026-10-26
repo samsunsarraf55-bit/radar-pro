@@ -2419,9 +2419,8 @@
     </div>
   </div>
 
-<div class="modal-bg" 
 <div class="modal-bg" id="avgDetailModal">
-  <div class="modal" style="max-width:420px">
+  <div class="modal" style="max-width:440px">
     <button class="close" type="button" data-close-avg>✕</button>
     <h2 id="avgDetailTitle">Kaynak detayı</h2>
     <div id="avgDetailBody"></div>
@@ -2686,15 +2685,19 @@ function applyTheme(){
   document.documentElement.setAttribute("data-theme", t);
   try{ document.body.setAttribute("data-theme", t); }catch(e){}
   try{ document.documentElement.style.colorScheme = t; }catch(e){}
-  try{ document.body.style.background = getComputedStyle(document.documentElement).getPropertyValue("--bg"); }catch(e){}
+  try{
+    var bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || (t==="dark"?"#0b0f14":"#f0f2f5");
+    document.body.style.background = bg;
+    document.documentElement.style.background = bg;
+  }catch(e){}
   var btn = document.getElementById("btnTheme");
   if(btn){
     btn.textContent = t === "dark" ? "☀️" : "🌙";
+    btn.title = t === "dark" ? "Gündüz modu" : "Gece modu";
     btn.setAttribute("aria-label", t === "dark" ? "Gündüz modu" : "Gece modu");
   }
   var st = document.getElementById("setTheme");
   if(st) st.value = t;
-  // meta theme-color for mobile browser chrome
   var meta = document.querySelector('meta[name="theme-color"]');
   if(!meta){ meta=document.createElement("meta"); meta.name="theme-color"; document.head.appendChild(meta); }
   meta.content = t === "dark" ? "#0b0f14" : "#f0f2f5";
@@ -3937,18 +3940,36 @@ function renderSummary(){
     el.innerHTML = html || '<div class="sum-card"><div class="sub">Veri yükleniyor…</div></div>';
     el.querySelectorAll(".sum-prod-card[data-pid]").forEach(function(node){
       if(node.id === "sumArbCard") return;
+      node.style.cursor = "pointer";
+      node.title = "Tıkla / çift dokun: fiyat detayı";
       node.addEventListener("dblclick", function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        openSumDetail(node.getAttribute("data-pid"));
+      });
+      /* Tek tık da detay açsın (masaüstü) */
+      node.addEventListener("click", function(ev){
+        if(ev.detail > 1) return; /* dblclick ayrı */
         ev.preventDefault();
         openSumDetail(node.getAttribute("data-pid"));
       });
       var lastTap = 0;
       node.addEventListener("touchend", function(ev){
         var now = Date.now();
-        if(now - lastTap < 320){
+        if(now - lastTap < 350){
           ev.preventDefault();
           openSumDetail(node.getAttribute("data-pid"));
+          lastTap = 0;
+        } else {
+          lastTap = now;
+          /* tek dokunuşta da aç (mobil kısayol) */
+          setTimeout(function(){
+            if(lastTap && Date.now() - lastTap >= 340){
+              openSumDetail(node.getAttribute("data-pid"));
+              lastTap = 0;
+            }
+          }, 360);
         }
-        lastTap = now;
       }, {passive:false});
     });
   }
@@ -3973,6 +3994,19 @@ function openSumDetail(pid){
       '<span style="display:inline-flex;align-items:center;gap:6px">'+logo+'<span>'+nm+'</span></span>'+
     '</div>';
   }
+  var extra = "";
+  if(d.all && d.all.length){
+    extra = '<div style="margin-top:12px;font-size:12px;font-weight:700;color:var(--muted)">Tüm firmalar</div>';
+    d.all.forEach(function(q){
+      var logo = "";
+      try { if(q.firm && typeof firmLogo==="function") logo = firmLogo(q.firm); } catch(e){}
+      var nm = q.firmName || (SOURCES[q.firm] && SOURCES[q.firm].name) || q.firm || "—";
+      extra += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">'+
+        '<span style="display:inline-flex;align-items:center;gap:6px">'+logo+'<span>'+nm+'</span></span>'+
+        '<span style="font-variant-numeric:tabular-nums"><b style="color:var(--green)">'+ff(q.alis)+'</b> / <b style="color:var(--red)">'+ff(q.satis)+'</b></span>'+
+      '</div>';
+    });
+  }
   body.innerHTML =
     '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">Piyasadaki en yüksek alış ve en düşük satışın geldiği firmaların tam fiyatları</div>'+
     '<div style="border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px">'+
@@ -3984,9 +4018,12 @@ function openSumDetail(pid){
       firmHead(d.minKey, d.minFirm, "Satış min")+
       '<div>Alış: <b style="color:var(--green)">'+ff(minQ.alis)+'</b></div>'+
       '<div>Satış: <b style="color:var(--red)">'+ff(minQ.satis!=null?minQ.satis:d.minSatis)+'</b></div>'+
-    '</div>';
+    '</div>'+extra;
   var m = document.getElementById("avgDetailModal");
-  if(m) m.classList.add("open");
+  if(m){
+    m.classList.add("open");
+    m.style.display = "flex";
+  }
 }
 
 
@@ -5309,8 +5346,20 @@ setTimeout(function(){
 
 
 (function(){
+  var _themeTouchAt = 0;
   function toggleTheme(ev){
-    if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+    if(ev){
+      /* touch sonrası sentetik click çift tetiklemeyi engelle */
+      if(ev.type === "click" && Date.now() - _themeTouchAt < 500){
+        ev.preventDefault();
+        return;
+      }
+      if(ev.type === "touchend"){
+        _themeTouchAt = Date.now();
+        ev.preventDefault();
+      }
+      try{ ev.stopPropagation(); }catch(e){}
+    }
     if(typeof settings==="undefined") return;
     settings.theme = (settings.theme === "dark") ? "light" : "dark";
     try{ saveSettings(); }catch(e){}
@@ -5334,6 +5383,8 @@ setTimeout(function(){
       try{ markSettingsDirty(); }catch(e){}
     });
   }
+  /* İlk yüklemede temayı zorunlu uygula */
+  try{ applyTheme(); }catch(e){}
 })();
 
 
