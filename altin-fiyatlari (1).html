@@ -2215,7 +2215,7 @@
 
   <div class="ticker"><div class="ticker-inner" id="ticker"></div></div>
 
-  <button type="button" class="jump-firms-fab" id="jumpFirmsFab" title="Firma fiyatları">↓ Firmalar</button>
+  <button type="button" class="jump-firms-fab" id="jumpFirmsFab" title="Firmalara git" aria-label="Firmalara git">↓</button>
   <div class="wrap">
     <!-- GLOBAL SUMMARY (all tabs, not sticky) -->
     <div class="sum-row sum-row-global" id="sumRow"></div>
@@ -2774,7 +2774,9 @@ function parseAltinkose(d){
     var nm=(k.ad||k.kur_kodu||"").toLowerCase();
     var kod=(k.kur_kod||k.kur_kodu||"").toLowerCase();
     var tip=(k.tip||"").toLowerCase();
-    var isAltin = tip==="emtia" || tip==="ozel_urun" || /ayar|ceyrek|çeyrek|yarim|yarım|ziynet|ata|has|gram|gumus|gümüş|xau|ag|altin|altın|resad|reşat/.test(nm+" "+kod);
+    var isFxCode = /^(usd|eur|gbp|chf|aud|cad|sar|jpy|rub|gel|azn|nok|sek|dkk|aed)$/i.test(kod) || /^(usd|eur|gbp|chf|aud|cad|sar|jpy|rub|gel|azn)$/i.test(nm);
+    var isAltin = !isFxCode && (tip==="emtia" || tip==="ozel_urun" || tip==="altin" || /ayar|ceyrek|çeyrek|yarim|yarım|ziynet|ata|has|gram|gumus|gümüş|xau|ag|altin|altın|resad|reşat/.test(nm+" "+kod));
+    if(tip==="doviz" || tip==="fx" || tip==="kur") isAltin = false;
     var dispName = k.ad||k.kur_kodu||kod;
     if(rename[nm]) dispName = rename[nm];
     else if(rename[kod]) dispName = rename[kod];
@@ -2793,6 +2795,19 @@ function parseAltinkose(d){
   rows.forEach(function(r){
     if(isNaN(r.alis)) r.alis = 0;
     if(isNaN(r.satis)) r.satis = 0;
+    /* Gümüş (Ag): 0,50 altı aşağı, 0,50 ve üstü yukarı (tam sayıya) */
+    var isGumus = /gümüş|gumus|^ag$/i.test(String(r.name||"")+" "+String(r.kod||""));
+    if(isGumus){
+      r.alis = Math.round(Number(r.alis));
+      r.satis = Math.round(Number(r.satis));
+    }
+  });
+  /* Döviz satırları: tip/kod USD EUR vb. ise kind=doviz (API'de şu an yok; gelirse alınır) */
+  rows.forEach(function(r){
+    var t = (String(r.kod||"")+" "+String(r.name||"")).toUpperCase();
+    if(/\b(USD|EUR|GBP|CHF|AUD|CAD|SAR|JPY|RUB|GEL|AZN|NOK|SEK|DKK|AED)\b/.test(t)){
+      r.kind = "doviz";
+    }
   });
   rows.sort(function(a,b){
     var ka = (a.kod||a.name||"").toLowerCase();
@@ -3280,6 +3295,14 @@ function firmDisplayName(key){
   var p = getFirmPref(key);
   return (p.firmName && p.firmName.trim()) ? p.firmName.trim() : (SOURCES[key] && SOURCES[key].name) || key;
 }
+/* Modal / dar alan: "Güneş Kuyumculuk" → "Güneş", "Kaptan Döviz" → "Kaptan" */
+function shortFirmName(key, name){
+  var n = (name && String(name).trim()) || (typeof firmDisplayName==="function" ? firmDisplayName(key) : "") || (SOURCES[key] && SOURCES[key].name) || key || "—";
+  n = n.replace(/\s+(Kuyumculuk|Kuyumcu|Döviz|Sarrafiye|Sarraf)$/i, "").trim();
+  if(n.length > 14) n = n.split(/\s+/)[0];
+  return n || "—";
+}
+
 function applyFirmColPrefs(key, rows){
   var p = getFirmPref(key);
   var list = (rows||[]).map(function(r){ return Object.assign({}, r); });
@@ -3998,10 +4021,10 @@ function openSumDetail(pid){
   function firmHead(key, name, kindLabel){
     var logo = "";
     try { if(key && typeof firmLogo==="function") logo = firmLogo(key); } catch(e){}
-    var nm = name || "—";
-    return '<div style="display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:8px">'+
-      '<span style="color:var(--muted);font-weight:600;font-size:12px">'+kindLabel+'</span>'+
-      '<span style="display:inline-flex;align-items:center;gap:6px">'+logo+'<span>'+nm+'</span></span>'+
+    var nm = (typeof shortFirmName==="function") ? shortFirmName(key, name) : (name || "—");
+    return '<div style="display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:8px;flex-wrap:nowrap">'+
+      '<span style="color:var(--muted);font-weight:600;font-size:12px;flex-shrink:0">'+kindLabel+'</span>'+
+      '<span style="display:inline-flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+logo+'<span style="white-space:nowrap">'+nm+'</span></span>'+
     '</div>';
   }
   var extra = "";
@@ -4010,9 +4033,11 @@ function openSumDetail(pid){
     d.all.forEach(function(q){
       var logo = "";
       try { if(q.firm && typeof firmLogo==="function") logo = firmLogo(q.firm); } catch(e){}
-      var nm = q.firmName || (SOURCES[q.firm] && SOURCES[q.firm].name) || q.firm || "—";
+      var nm = (typeof shortFirmName==="function")
+        ? shortFirmName(q.firm, q.firmName || (SOURCES[q.firm] && SOURCES[q.firm].name) || q.firm)
+        : (q.firmName || (SOURCES[q.firm] && SOURCES[q.firm].name) || q.firm || "—");
       extra += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">'+
-        '<span style="display:inline-flex;align-items:center;gap:6px">'+logo+'<span>'+nm+'</span></span>'+
+        '<span style="display:inline-flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden"><span style="flex-shrink:0">'+logo+'</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+nm+'</span></span>'+
         '<span style="font-variant-numeric:tabular-nums"><b style="color:var(--green)">'+ff(q.alis)+'</b> / <b style="color:var(--red)">'+ff(q.satis)+'</b></span>'+
       '</div>';
     });
