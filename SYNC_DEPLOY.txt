@@ -1,0 +1,8 @@
+TEK KAYNAK: radar-pro-latest.html
+Kopyala:
+  cp radar-pro-latest.html index.html
+  cp radar-pro-latest.html "altin-fiyatlari (1).html"
+  cp radar-pro-latest.html altin-fiyatlari.html
+Sonra GitHub push (üç dosya aynı içerik).
+Cloudflare: altin-fiyatlari (1).html
+Netlify: index.html

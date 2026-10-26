@@ -1,4 +1,4 @@
-fmtGold/fmtFx fix — 2026-10-26
-Root cause: ReferenceError fmtGold is not defined broke renderFirmGrid
-index.html patch-loader injects fmtGold+fmtFx
-worker.js also injects on serve (redeploy CF worker)
+logos in sum-detail modal + single-source sync
+Source of truth: radar-pro-latest.html
+Copies: index.html, altin-fiyatlari (1).html, altin-fiyatlari.html
+2026-10-26
