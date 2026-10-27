@@ -4604,15 +4604,18 @@ function closeAvgDetail(){
   if(!m) return;
   m.classList.remove("open");
   m.style.display = "";
+  m.removeAttribute("data-open-pid");
   /* 500ms yeniden açılmayı engelle (X / backdrop tıklaması karta sızmasın) */
   window.__avgDetailBlockUntil = Date.now() + 500;
   window.__openSumPid = null;
 }
-function openSumDetail(pid){
-  if(Date.now() < (window.__avgDetailBlockUntil || 0)) return;
+function openSumDetail(pid, force){
+  /* force=true: canlı yenileme — kapatma engelini yok say */
+  if(!force && Date.now() < (window.__avgDetailBlockUntil || 0)) return;
 
   var d = (window.__sumDetail && window.__sumDetail[pid]) || null;
   if(!d) return;
+  window.__openSumPid = pid;
   var ff = d.isFx ? fmtFx : fmtGold;
   var maxQ = d.maxQuote || {};
   var minQ = d.minQuote || {};
@@ -4656,10 +4659,11 @@ function openSumDetail(pid){
       '<div>Alış: <b style="color:var(--green)">'+ff(minQ.alis)+'</b></div>'+
       '<div>Satış: <b style="color:var(--red)">'+ff(minQ.satis!=null?minQ.satis:d.minSatis)+'</b></div>'+
     '</div>'+extra;
-  var m = document.getElementById("avgDetailModal");
+    var m = document.getElementById("avgDetailModal");
   if(m){
     m.classList.add("open");
     m.style.display = "flex";
+    m.setAttribute("data-open-pid", pid);
   }
 }
 
@@ -5342,16 +5346,33 @@ function loadAll(){
     });
   });
   Promise.allSettled(jobs).then(function(){
-    renderFirmGrid(); renderTicker(); renderSummary(); renderFirmMenu();
-    if(document.getElementById("page-compare").classList.contains("active")) renderCompare();
-    if(document.getElementById("page-arb").classList.contains("active")) renderArb();
-    else { var ops=findArbitrage(); notifyArb(ops); }
-    /* Açık firma detayı modalını canlı güncelle */
+    /* Tüm menülerde anlık yansıt */
+    try { renderFirmGrid(); } catch(e){ console.warn("renderFirmGrid", e); }
+    try { renderTicker(); } catch(e){ console.warn("renderTicker", e); }
+    try { renderSummary(); } catch(e){ console.warn("renderSummary", e); }
+    try { renderFirmMenu(); } catch(e){ console.warn("renderFirmMenu", e); }
+    try { if(typeof renderCompare==="function") renderCompare(); } catch(e){ console.warn("renderCompare", e); }
+    try { if(typeof renderArb==="function") renderArb(); } catch(e){ console.warn("renderArb", e); }
     try {
-      var opid = window.__openSumPid;
+      var ops = (typeof findArbitrage==="function") ? findArbitrage() : [];
+      if(typeof notifyArb==="function") notifyArb(ops);
+    } catch(e){}
+    /* Açık modalları canlı güncelle */
+    try {
       var modal = document.getElementById("avgDetailModal");
-      if(opid && modal && modal.classList.contains("open") && opid !== "__more__"){
-        if(typeof openSumDetail==="function") openSumDetail(opid);
+      var opid = window.__openSumPid || (modal && modal.getAttribute("data-open-pid"));
+      if(modal && (modal.classList.contains("open") || modal.style.display === "flex") && opid){
+        if(opid === "__more__"){
+          if(typeof openSumMoreModal==="function") openSumMoreModal();
+        } else if(typeof openSumDetail==="function") {
+          openSumDetail(opid, true);
+        }
+      }
+    } catch(e){}
+    try {
+      var hm = document.getElementById("histModal");
+      if(hm && hm.classList.contains("open") && window.__openHistFirm && typeof openHist==="function"){
+        openHist(window.__openHistFirm, window.__openHistName);
       }
     } catch(e){}
     var anyOk=ORDER.some(function(k){return store[k]&&store[k].length;});
