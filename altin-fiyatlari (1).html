@@ -2848,7 +2848,7 @@
       <div class="ai-wrap">
         <div class="ai-chat">
           <div class="ai-msgs" id="aiMsgs">
-            <div class="ai-msg bot">Merhaba, ben <b>RADAR AI</b>. Güncel fiyatlara, arbitraj fırsatlarına ve firma karşılaştırmalarına bakabilirim. Örn: “En ucuz gram altın neredе?”, “USD makasları”, “Arbitraj var mı?”</div>
+            <div class="ai-msg bot">Merhaba, ben <b>RADAR AI</b>. Güncel fiyatlara, arbitraj fırsatlarına ve ons farkına bakabilirim. Örn: “Ons farkı nedir?”, “En ucuz gram altın nerede?”, “Arbitraj var mı?”</div>
           </div>
           <div class="ai-input">
             <input id="aiInput" placeholder="Sorunuzu yazın..." autocomplete="off">
@@ -2877,11 +2877,11 @@
         </div>
 
         <div class="set-card" id="firmOrderCard">
-          <h3>🏢 Firma sütun sırası</h3>
-          <p class="set-desc">Ana sayfa, karşılaştırma ve arbitraj tablolarında firma sırası. Kartları sürükleyip bırakın.</p>
+          <h3>Genel Ayarlar · Firma sütun sırası</h3>
+          <p class="set-desc">Ana sayfadaki firma sütunlarının sırası. Oklarla yukarı-aşağı alın veya kartı sürükleyin, sonra kaydedin.</p>
           <div id="firmOrderBox" class="firm-order-cards"></div>
           <div class="set-actions" style="margin-top:12px">
-            <button type="button" class="btn-ghost" id="firmOrderSave">Sırayı kaydet</button>
+            <button type="button" class="btn-primary" id="firmOrderSave">Sırayı kaydet</button>
             <button type="button" class="btn-ghost" id="firmOrderReset">Varsayılana dön</button>
           </div>
         </div>
@@ -4209,8 +4209,8 @@ function firmTable(key, rows, flashes){
     }
 
     var mark = arbMap[key+"|"+nid];
-    var alBadge = (mark==="al"||mark==="both") ? '<span class="arb-under al" title="Aktif fırsat: en yüksek alış">AL</span>' : "";
-    var satBadge = (mark==="sat"||mark==="both") ? '<span class="arb-under sat" title="Aktif fırsat: en düşük satış">SAT</span>' : "";
+    var alBadge = (mark==="al"||mark==="both") ? '<span class="arb-under al" title="Aktif fırsat: en düşük satıştan al">AL</span>' : "";
+    var satBadge = (mark==="sat"||mark==="both") ? '<span class="arb-under sat" title="Aktif fırsat: en yüksek alişa sat">SAT</span>' : "";
 
     var isHighBuy = bestMap[nid] && bestMap[nid].highBuySrc === key;
     var isLowSell = bestMap[nid] && bestMap[nid].lowSellSrc === key;
@@ -4223,8 +4223,8 @@ function firmTable(key, rows, flashes){
     var rowCls = mark ? " row-arb" : "";
     h += '<tr class="row-click'+rowCls+'" data-firm="'+key+'" data-kod="'+k+'" data-name="'+(r.name||"").replace(/"/g,"&quot;")+'">'+
       '<td>'+nameHtml+'</td>'+
-      '<td class="'+clsA+'"><div class="px-stack">'+arrowA+alBadge+'<span class="px-num">'+(r.kind==="doviz"?fmtFx(r.alis):fmtGold(r.alis))+'</span></div></td>'+
-      '<td class="'+clsS+'"><div class="px-stack">'+arrowS+satBadge+'<span class="px-num">'+(r.kind==="doviz"?fmtFx(r.satis):fmtGold(r.satis))+'</span></div></td>'+
+      '<td class="'+clsA+'"><div class="px-stack">'+arrowA+satBadge+'<span class="px-num">'+(r.kind==="doviz"?fmtFx(r.alis):fmtGold(r.alis))+'</span></div></td>'+
+      '<td class="'+clsS+'"><div class="px-stack">'+arrowS+alBadge+'<span class="px-num">'+(r.kind==="doviz"?fmtFx(r.satis):fmtGold(r.satis))+'</span></div></td>'+
       '<td class="makas">'+fmt(makas)+'</td></tr>';
   });
   return h+'</tbody></table>';
@@ -4327,8 +4327,9 @@ function buildArbMarkMap(){
     if(!(Number((bestAl.alis - bestSat.satis).toFixed(4)) > 0)) return;
     var ak = bestAl.firm+"|"+id;
     var sk = bestSat.firm+"|"+id;
-    map[ak] = (map[ak]==="sat") ? "both" : (map[ak] || "al");
-    map[sk] = (map[sk]==="al") ? "both" : (map[sk] || "sat");
+    /* En yüksek alışın yanında SAT, en düşük satışın yanında AL */
+    map[ak] = (map[ak]==="al") ? "both" : (map[ak] || "sat");
+    map[sk] = (map[sk]==="sat") ? "both" : (map[sk] || "al");
   });
   return map;
 }
@@ -4517,7 +4518,11 @@ function fillFirmOrderBox(){
       '<span class="fo-handle" style="color:#94a3b8;font-size:12px">☰</span>'+
       '<div class="fo-logo" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center">'+logo+'</div>'+
       '<div class="fo-name" style="font-size:12px;font-weight:700;text-align:center;line-height:1.2;max-width:110px">'+nm+'</div>'+
-      '<div style="font-size:10px;color:#94a3b8">#'+(idx+1)+'</div>';
+      '<div class="fo-idx" style="font-size:10px;color:#94a3b8">#'+(idx+1)+'</div>'+
+      '<div class="fo-move" style="display:flex;gap:4px">'+
+        '<button type="button" class="btn-ghost fo-up" style="padding:2px 8px;min-width:28px" title="Yukarı">↑</button>'+
+        '<button type="button" class="btn-ghost fo-down" style="padding:2px 8px;min-width:28px" title="Aşağı">↓</button>'+
+      '</div>';
     box.appendChild(row);
   });
 
@@ -4530,6 +4535,25 @@ function fillFirmOrderBox(){
     delete box.dataset.touchBound;
     bindFirmOrderDrag(box);
   } } catch(e){ console.warn("drag", e); }
+
+  if(!box.dataset.moveBound){
+    box.dataset.moveBound = "1";
+    box.addEventListener("click", function(ev){
+      var t = ev.target;
+      if(!t || !t.closest) return;
+      var up = t.closest(".fo-up");
+      var down = t.closest(".fo-down");
+      if(!up && !down) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      var card = t.closest(".fo-card");
+      if(!card) return;
+      if(up && card.previousElementSibling) box.insertBefore(card, card.previousElementSibling);
+      if(down && card.nextElementSibling) box.insertBefore(card.nextElementSibling, card);
+      var n = 1;
+      box.querySelectorAll(".fo-idx").forEach(function(el){ el.textContent = "#"+(n++); });
+    });
+  }
 
   var btn = document.getElementById("firmOrderSave");
   if(btn){
@@ -4981,14 +5005,14 @@ function renderFirmGrid(){
       var fs = flashes[rowKey(r)+"_s"]||"";
       var nid = normalizeProductId(r);
       var mark = arbMapLive[key+"|"+nid];
-      var alBadge = (mark==="al"||mark==="both") ? '<span class="arb-under al" title="Aktif fırsat: en yüksek alış">AL</span>' : "";
-      var satBadge = (mark==="sat"||mark==="both") ? '<span class="arb-under sat" title="Aktif fırsat: en düşük satış">SAT</span>' : "";
+      var alBadge = (mark==="al"||mark==="both") ? '<span class="arb-under al" title="Aktif fırsat: en düşük satıştan al">AL</span>' : "";
+      var satBadge = (mark==="sat"||mark==="both") ? '<span class="arb-under sat" title="Aktif fırsat: en yüksek alişa sat">SAT</span>' : "";
       var arrowA = fa==="up" ? '<span class="dir up">↑</span>' : (fa==="down" ? '<span class="dir down">↓</span>' : '');
       var arrowS = fs==="up" ? '<span class="dir up">↑</span>' : (fs==="down" ? '<span class="dir down">↓</span>' : '');
       tr.cells[1].className = "px px-alis" + (fa?(" flash-"+fa):"");
-      tr.cells[1].innerHTML = '<div class="px-stack">'+arrowA+alBadge+'<span class="px-num">'+(r.kind==="doviz"?fmtFx(r.alis):fmtGold(r.alis))+'</span></div>';
+      tr.cells[1].innerHTML = '<div class="px-stack">'+arrowA+satBadge+'<span class="px-num">'+(r.kind==="doviz"?fmtFx(r.alis):fmtGold(r.alis))+'</span></div>';
       tr.cells[2].className = "px px-satis" + (fs?(" flash-"+fs):"");
-      tr.cells[2].innerHTML = '<div class="px-stack">'+arrowS+satBadge+'<span class="px-num">'+(r.kind==="doviz"?fmtFx(r.satis):fmtGold(r.satis))+'</span></div>';
+      tr.cells[2].innerHTML = '<div class="px-stack">'+arrowS+alBadge+'<span class="px-num">'+(r.kind==="doviz"?fmtFx(r.satis):fmtGold(r.satis))+'</span></div>';
       var makas = (r.alis!=null && r.satis!=null) ? (Number(r.satis)-Number(r.alis)) : null;
       if(tr.cells[3]){ tr.cells[3].className="makas"; tr.cells[3].textContent = fmt(makas); }
     });
@@ -6227,8 +6251,106 @@ function openDetailModal(kind){
 }
 
 /* AI */
+var TROY_OZ_GR = 31.1034768;
+function aiXauLast(pair){
+  if(!pair) return null;
+  if(pair.last!=null && !isNaN(+pair.last)) return +pair.last;
+  if(pair.bid!=null && pair.ask!=null && !isNaN(+pair.bid) && !isNaN(+pair.ask)) return (+pair.bid + +pair.ask)/2;
+  if(pair.bid!=null && !isNaN(+pair.bid)) return +pair.bid;
+  if(pair.ask!=null && !isNaN(+pair.ask)) return +pair.ask;
+  return null;
+}
+function aiNum(n, d){
+  if(n==null || isNaN(n)) return "—";
+  return Number(n).toLocaleString("tr-TR", {minimumFractionDigits:d, maximumFractionDigits:d});
+}
+function aiFirmGold(kind){
+  var out = [];
+  (typeof ORDER!=="undefined"?ORDER:[]).forEach(function(firm){
+    (store[firm]||[]).forEach(function(r){
+      var nid = (typeof normalizeProductId==="function") ? normalizeProductId(r) : "";
+      var ok = kind==="HAS" ? nid==="HAS" : (nid==="AYAR24" || nid==="HAS24");
+      if(!ok) return;
+      var a = Number(r.alis), s = Number(r.satis);
+      if(!(a>0) && !(s>0)) return;
+      out.push({
+        name: (SOURCES[firm]&&SOURCES[firm].name)||firm,
+        alis: a>0?a:null,
+        satis: s>0?s:null
+      });
+    });
+  });
+  return out;
+}
+function aiUsdTry(){
+  var mids = [];
+  (ORDER||[]).forEach(function(firm){
+    (store[firm]||[]).forEach(function(r){
+      var nid = (typeof normalizeProductId==="function") ? normalizeProductId(r) : "";
+      if(nid!=="USD") return;
+      var a = Number(r.alis), s = Number(r.satis);
+      if(a>0 && s>0) mids.push((a+s)/2);
+      else if(s>0) mids.push(s);
+      else if(a>0) mids.push(a);
+    });
+  });
+  if(!mids.length) return null;
+  return mids.reduce(function(x,y){return x+y;},0)/mids.length;
+}
+function aiAvg(vals){
+  var v = (vals||[]).filter(function(n){ return n>0; });
+  if(!v.length) return null;
+  return v.reduce(function(a,b){return a+b;},0)/v.length;
+}
+function aiOnsFark(){
+  var tv = window.__tvXau || {};
+  var xauUsd = aiXauLast(tv.xauusd);
+  var xauTryg = aiXauLast(tv.tryg);
+  var usdTry = aiUsdTry();
+  var lines = [];
+  lines.push("Küresel · "+(tv.src||"investing / tradingview"));
+  lines.push("XAU/USD: "+aiNum(xauUsd,2)+" USD/ons");
+  lines.push("XAU/TRYG: "+aiNum(xauTryg,2)+" TL/gram");
+  lines.push("USD/TRY firma ort.: "+aiNum(usdTry,4));
+  function block(title, rows){
+    lines.push("");
+    lines.push(title);
+    if(!rows.length){ lines.push("Firma fiyatı yok."); return; }
+    var alis = aiAvg(rows.map(function(r){return r.alis;}));
+    var satis = aiAvg(rows.map(function(r){return r.satis;}));
+    lines.push("Piyasa ort. alış "+aiNum(alis,2)+" · satış "+aiNum(satis,2)+" TL/gr");
+    if(xauTryg && satis) lines.push("Gram TL farkı (satış − XAU/TRYG): "+aiNum(satis-xauTryg,2)+" TL/gr");
+    if(xauTryg && alis) lines.push("Gram TL farkı (alış − XAU/TRYG): "+aiNum(alis-xauTryg,2)+" TL/gr");
+    if(xauUsd && usdTry && satis){
+      var oz = (satis/usdTry)*TROY_OZ_GR;
+      lines.push("ONS USD (satış): "+aiNum(oz,2)+" · fark "+aiNum(oz-xauUsd,2)+" USD/ons");
+    }
+    if(xauUsd && usdTry && alis){
+      var ozA = (alis/usdTry)*TROY_OZ_GR;
+      lines.push("ONS USD (alış): "+aiNum(ozA,2)+" · fark "+aiNum(ozA-xauUsd,2)+" USD/ons");
+    }
+    rows.forEach(function(r){
+      if(!(r.satis>0)) return;
+      var g = xauTryg ? (r.satis-xauTryg) : null;
+      var oz = (xauUsd && usdTry) ? ((r.satis/usdTry)*TROY_OZ_GR) : null;
+      var od = oz!=null ? (oz-xauUsd) : null;
+      lines.push(r.name.split(" ")[0]+" satış "+aiNum(r.satis,2)+
+        (g!=null?" · gr "+aiNum(g,2)+" TL":"")+
+        (od!=null?" · ons "+aiNum(od,2)+" USD":""));
+    });
+  }
+  block("HAS", aiFirmGold("HAS"));
+  block("24 AYAR", aiFirmGold("AYAR24"));
+  if(xauUsd==null && xauTryg==null) lines.push("Küresel XAU henüz gelmedi. Birkaç saniye sonra tekrar sorun.");
+  lines.push("");
+  lines.push("1 ons = 31,1035 gr. Ons farkı = (firma TL/gr ÷ USD/TRY × 31,1035) − XAU/USD.");
+  return lines.join("\n");
+}
 function aiReply(q){
   q=(q||"").toLowerCase();
+  if(/ons/.test(q) || /xau/.test(q) || /tryg/.test(q) || /küresel|kuresel/.test(q)){
+    return aiOnsFark();
+  }
   var ops=findArbitrage();
   if(/arbitraj|fırsat/.test(q)){
     if(!ops.length) return "Şu an anlamlı arbitraj fırsatı görünmüyor. Eşik: %"+settings.arbMin;
@@ -6245,8 +6367,8 @@ function aiReply(q){
     var best=q3.slice().sort(function(a,b){return a.satis-b.satis;})[0];
     return "En uygun satış: "+best.name+" "+fmt(best.satis)+" ₺\n"+q3.map(function(x){return x.name+": "+fmt(x.alis)+" / "+fmt(x.satis);}).join("\n");
   }
-  if(/merhaba|selam|help|yardım/.test(q)) return "Sorabileceğiniz örnekler: arbitraj, en ucuz gram, USD makasları, çeyrek fiyatları.";
-  return "Anladım. Deneyin: “arbitraj var mı?”, “en ucuz has”, “USD fiyatları”. Canlı veri "+ORDER.filter(function(k){return store[k]&&store[k].length;}).length+" firmadan geliyor.";
+  if(/merhaba|selam|help|yardım/.test(q)) return "Sorabileceğiniz örnekler: ons farkı nedir, arbitraj, en ucuz gram, USD makasları.";
+  return "Anladım. Deneyin: “ons farkı nedir?”, “arbitraj var mı?”, “en ucuz has”. Canlı veri "+ORDER.filter(function(k){return store[k]&&store[k].length;}).length+" firmadan geliyor.";
 }
 
 /* LOAD */
@@ -7193,16 +7315,38 @@ if(bex) bex.onclick = function(){
   try{ bindAdv(); }catch(e){ console.warn("bindAdv", e); }
 })();
 
-document.getElementById("aiSend").onclick=function(){
-  var inp=document.getElementById("aiInput"); var q=inp.value.trim(); if(!q) return;
+function sendAiMessage(){
+  var inp=document.getElementById("aiInput");
   var box=document.getElementById("aiMsgs");
-  box.innerHTML+='<div class="ai-msg user">'+q.replace(/</g,"&lt;")+'</div>';
-  box.innerHTML+='<div class="ai-msg bot">'+aiReply(q).replace(/\n/g,"<br>")+'</div>';
-  inp.value=""; box.scrollTop=box.scrollHeight;
-};
-document.getElementById("aiInput").onkeydown=function(e){ if(e.key==="Enter") document.getElementById("aiSend").click(); };
-
-
+  if(!inp || !box) return;
+  var q=(inp.value||"").trim();
+  if(!q) return;
+  var reply="Şu an cevap üretemedim.";
+  try{ reply = aiReply(q); }catch(err){ console.warn("aiReply", err); reply="Veriyi okurken hata oldu. Tekrar dener misin?"; }
+  var user=document.createElement("div");
+  user.className="ai-msg user";
+  user.textContent=q;
+  var bot=document.createElement("div");
+  bot.className="ai-msg bot";
+  bot.innerHTML=String(reply||"").replace(/</g,"<").replace(/\n/g,"<br>");
+  box.appendChild(user);
+  box.appendChild(bot);
+  inp.value="";
+  box.scrollTop=box.scrollHeight;
+}
+document.addEventListener("click", function(ev){
+  var t=ev.target;
+  if(!t) return;
+  var btn=(t.id==="aiSend")?t:(t.closest&&t.closest("#aiSend"));
+  if(!btn) return;
+  ev.preventDefault();
+  sendAiMessage();
+}, true);
+document.addEventListener("keydown", function(e){
+  var t=e.target;
+  if(!t || t.id!=="aiInput") return;
+  if(e.key==="Enter"){ e.preventDefault(); sendAiMessage(); }
+}, true);
 
 function fbFillForm(){
   try{
@@ -7766,10 +7910,15 @@ window.__radarToggleTheme = function(){
     closeModalBg(open[open.length - 1]);
   });
 
-  /* Modal içine tıklanınca karta bubble olmasın */
+  /* Modal içine tıklanınca alttaki karta bubble olmasın.
+     Buton, giriş ve firma kartı tıklarını kesme — yoksa Gönder/Kaydet çalışmaz. */
   document.addEventListener("click", function(e){
-    var modal = e.target && e.target.closest ? e.target.closest(".modal-bg.open .modal") : null;
-    if(modal) e.stopPropagation();
+    var t = e.target;
+    if(!t || !t.closest) return;
+    var modal = t.closest(".modal-bg.open .modal");
+    if(!modal) return;
+    if(t.closest("button, input, textarea, select, a, label, .fo-card, .toggle")) return;
+    e.stopPropagation();
   }, true);
 })();
 
