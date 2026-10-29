@@ -34,6 +34,28 @@
     .nav-btn.active{background:var(--bg2);color:var(--cyan);border-color:var(--border)}
     .nav-right{display:flex;align-items:center;gap:8px;margin-left:auto}
     .icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--text)}
+    .icon-btn.alarm-on{border-color:#f59e0b;color:#d97706}
+    .alarm-badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#dc2626;color:#fff;font-size:10px;font-weight:800;line-height:16px;text-align:center}
+    .nav-right{position:relative}
+    .icon-btn-wrap{position:relative;display:inline-flex}
+    #alarmModal .modal{max-width:480px;width:100%;max-height:86vh;overflow:auto;padding:16px 16px 14px}
+    #alarmModal h3{font-size:16px;margin:0 0 4px}
+    #alarmModal .hint{font-size:12px;color:var(--muted);margin-bottom:12px}
+    #alarmModal label{display:block;font-size:11px;color:var(--muted);margin:8px 0 4px;font-weight:600}
+    #alarmModal select,#alarmModal input{width:100%;height:36px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);padding:0 10px;font-size:13px}
+    #alarmModal .alarm-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    #alarmModal .alarm-actions{display:flex;gap:8px;margin-top:12px}
+    #alarmModal .alarm-list{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+    #alarmModal .alarm-item{border:1px solid var(--border);border-radius:10px;padding:8px 10px;display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:12px}
+    #alarmModal .alarm-item b{font-weight:700}
+    #alarmModal .alarm-item button{border:0;background:transparent;color:#dc2626;cursor:pointer;font-size:12px;font-weight:700}
+    .al-firm-btn,.al-firm-item{width:100%;display:flex;align-items:center;gap:8px;min-height:36px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);padding:4px 10px;font-size:13px;text-align:left;cursor:pointer}
+    .al-firm-menu{display:none;margin-top:4px;border:1px solid var(--border);border-radius:8px;overflow:auto;max-height:240px;background:var(--card)}
+    .al-firm-menu.open{display:block}
+    .al-firm-item{border:0;border-radius:0;border-bottom:1px solid var(--border)}
+    .al-firm-item.on{background:rgba(37,99,235,.14)}
+    #alarmModal .alarm-item .who{display:flex;align-items:center;gap:6px;font-weight:700}
+
     .icon-btn:hover{border-color:var(--cyan)}
     .live-chip{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--border);border-radius:20px;background:var(--card)}
     .dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.2s infinite}
@@ -691,6 +713,56 @@
     .cmp-card-side .pill.buy{background:rgba(34,197,94,.12);color:var(--green)}
     .cmp-card-side .pill.sell{background:rgba(220,38,38,.1);color:var(--red)}
     .cmp-card-side .pill.makas{background:var(--bg2);color:var(--muted)}
+
+    /* Samsun içi — global yeşil/kırmızı ile aynı aile, daha açık/yumuşak ton */
+    .cmp-firm-box .fa.best-ss{
+      background:rgba(34,197,94,.07)!important;color:#15803d!important;
+      font-weight:700;border-radius:6px;padding:2px 4px;
+      box-shadow:inset 0 0 0 1px rgba(34,197,94,.35);
+    }
+    .cmp-firm-box .fs.best-ss{
+      background:rgba(220,38,38,.07)!important;color:#b91c1c!important;
+      font-weight:700;border-radius:6px;padding:2px 4px;
+      box-shadow:inset 0 0 0 1px rgba(220,38,38,.35);
+    }
+    /* Global best daha doygun kalsın */
+    .cmp-firm-box .fa.best{
+      background:rgba(34,197,94,.18)!important;color:#166534!important;font-weight:800;
+    }
+    .cmp-firm-box .fs.best{
+      background:rgba(220,38,38,.16)!important;color:#991b1b!important;font-weight:800;
+    }
+        .cmp-card-side .pill.ss-buy{
+      background:rgba(34,197,94,.08);color:#15803d;
+      border:1px dashed rgba(34,197,94,.45);
+    }
+    .cmp-card-side .pill.ss-sell{
+      background:rgba(220,38,38,.08);color:#b91c1c;
+      border:1px dashed rgba(220,38,38,.45);
+    }
+    .cmp-card-side .pill.buy{
+      background:rgba(34,197,94,.16);color:var(--green,#166534);font-weight:800;
+      border:1px solid rgba(34,197,94,.35);
+    }
+    .cmp-card-side .pill.sell{
+      background:rgba(220,38,38,.14);color:var(--red,#991b1b);font-weight:800;
+      border:1px solid rgba(220,38,38,.35);
+    }
+    [data-theme="dark"] .cmp-firm-box .fa.best-ss{
+      background:rgba(34,197,94,.12)!important;color:#86efac!important;
+      box-shadow:inset 0 0 0 1px rgba(34,197,94,.4);
+    }
+    [data-theme="dark"] .cmp-firm-box .fs.best-ss{
+      background:rgba(248,113,113,.12)!important;color:#fca5a5!important;
+      box-shadow:inset 0 0 0 1px rgba(248,113,113,.4);
+    }
+    [data-theme="dark"] .cmp-card-side .pill.ss-buy{
+      background:rgba(34,197,94,.12);color:#86efac;border-color:rgba(34,197,94,.4);
+    }
+    [data-theme="dark"] .cmp-card-side .pill.ss-sell{
+      background:rgba(248,113,113,.12);color:#fca5a5;border-color:rgba(248,113,113,.4);
+    }
+
     @media(max-width:700px){
       .cmp-card{grid-template-columns:1fr}
       .cmp-card-firms{grid-template-columns:1fr 1fr}
@@ -2697,6 +2769,10 @@
       <div class="nav-right">
         <button class="nav-btn ai-nav-btn" data-page="ai" title="RADAR AI"><span class="ai-label">RADAR AI</span></button>
         <button class="nav-btn icon-only" data-page="settings" title="Ayarlar">⚙️</button>
+        <span class="icon-btn-wrap">
+          <button type="button" class="icon-btn" id="btnAlarm" title="Fiyat alarmı" aria-label="Fiyat alarmı">🔔</button>
+          <span class="alarm-badge" id="alarmBadge" style="display:none">0</span>
+        </span>
         <button type="button" class="icon-btn" id="btnTheme" title="Tema" aria-label="Tema değiştir">🌙</button>
         <button class="icon-btn" id="btnRefresh" title="Yenile">↻</button>
       </div>
@@ -2924,6 +3000,39 @@
       <div id="histBody"></div>
     </div>
   </div>
+  <div class="modal-bg" id="alarmModal">
+    <div class="modal">
+      <h3>Fiyat alarmı</h3>
+      <p class="hint">Bir firmanın ürün fiyatı eşiğin altına düşerse veya üstüne çıkarsa uyarı verir.</p>
+      <label>Firma</label>
+      <button type="button" class="al-firm-btn" id="alFirmBtn"></button>
+      <div class="al-firm-menu" id="alFirmMenu"></div>
+      <input type="hidden" id="alFirm" value="" />
+      <label>Ürün</label>
+      <button type="button" class="al-firm-btn" id="alProductBtn"></button>
+      <div class="al-firm-menu" id="alProductMenu"></div>
+      <input type="hidden" id="alProduct" value="" />
+      <input type="hidden" id="alProductKind" value="" />
+      <input type="hidden" id="alProductLabel" value="" />
+      <div class="alarm-row">
+        <div>
+          <label>Fiyat</label>
+          <select id="alSide"><option value="satis">Satış</option><option value="alis">Alış</option></select>
+        </div>
+        <div>
+          <label>Koşul</label>
+          <select id="alOp"><option value="below">Altına düşünce</option><option value="above">Üstüne çıkınca</option></select>
+        </div>
+      </div>
+      <label>Eşik fiyat</label>
+      <input id="alPrice" inputmode="decimal" placeholder="ör. 49,8000" />
+      <div class="alarm-actions">
+        <button type="button" class="btn-primary" id="alSave">Alarm kur</button>
+        <button type="button" class="btn-ghost" id="alClose">Kapat</button>
+      </div>
+      <div class="alarm-list" id="alList"></div>
+    </div>
+  </div>
   <div class="toast" id="toast"><h4>⚡ Arbitraj Fırsatı</h4><p id="toastBody"></p></div>
 
 
@@ -2939,6 +3048,10 @@ var USE_PROXY = location.protocol === "http:" || location.protocol === "https:";
 var DOVIZ_ORDER = ["USD","EUR","GBP","CHF","AUD","CAD","SAR","JPY","RUB","GEL","AZN"];
 var ALTIN_ORDER = ["HAS","AYAR24","AYAR22","CEYREK","YARIM","TAM","ATA","RESAT","GUMUS"];
 var ORDER = ["gunes","solis","kaptan","ilkay","sar","altinkose","vizyon","ahlatci"];
+/* Samsun içi firmalar — karşılaştırma vurgusu */
+var SAMSUN_FIRMS = {gunes:1,solis:1,kaptan:1,ilkay:1,sar:1,altinkose:1,vizyon:1};
+function isSamsunFirm(k){ return !!(SAMSUN_FIRMS && SAMSUN_FIRMS[k]); }
+
 var SOURCES = {
   gunes:     { name: "Güneş Kuyumculuk", proxy: "/api/gunes", direct: "https://api.guneskuyumculuk.net/temp-server/merkez/data" },
   kaptan:    { name: "Kaptan Döviz", proxy: "/api/kaptan", direct: "https://www.kaptandoviz.com/kurlar/api.php" },
@@ -3575,6 +3688,309 @@ function findArbitrage(){
   });
   ops.sort(function(a,b){return b.pct-a.pct;});
   return ops;
+}
+
+var priceAlarms = [];
+try { priceAlarms = JSON.parse(localStorage.getItem("radar_price_alarms")||"[]") || []; } catch(e){ priceAlarms = []; }
+
+function savePriceAlarms(){
+  try { localStorage.setItem("radar_price_alarms", JSON.stringify(priceAlarms)); } catch(e){}
+  paintAlarmBadge();
+  renderAlarmList();
+}
+function parseAlarmPrice(v){
+  var s = String(v||"").trim().replace(/\s/g,"");
+  if(s.indexOf(",")>=0 && s.indexOf(".")>=0) s = s.replace(/\./g,"").replace(",",".");
+  else if(s.indexOf(",")>=0) s = s.replace(",",".");
+  var n = parseFloat(s);
+  return n;
+}
+function alarmFirmName(k){
+  return (SOURCES[k] && SOURCES[k].name) ? SOURCES[k].name : k;
+}
+function firmProductOptions(firm){
+  var rows = store[firm] || [];
+  var seen = {}, out = [];
+  rows.forEach(function(r){
+    var id = (typeof normalizeProductId==="function") ? normalizeProductId(r) : (r.kod||r.name);
+    if(!id || seen[id]) return;
+    seen[id] = 1;
+    var label = (typeof standardName==="function") ? standardName(id, r.name) : (r.name||id);
+    out.push({ id:String(id), label:label, kind:r.kind||"doviz" });
+  });
+  return out;
+}
+function paintAlarmBadge(){
+  var n = priceAlarms.filter(function(a){ return a.enabled !== false; }).length;
+  var b = document.getElementById("alarmBadge");
+  var btn = document.getElementById("btnAlarm");
+  if(b){
+    b.style.display = n ? "block" : "none";
+    b.textContent = String(n);
+  }
+  if(btn) btn.classList.toggle("alarm-on", n > 0);
+}
+function setAlarmFirm(key){
+  var hid = document.getElementById("alFirm");
+  if(hid) hid.value = key || "";
+  var btn = document.getElementById("alFirmBtn");
+  if(btn && key) btn.innerHTML = firmLogo(key) + "<span>" + alarmFirmName(key) + "</span>";
+  var menu = document.getElementById("alFirmMenu");
+  if(menu){
+    menu.querySelectorAll("[data-al-firm]").forEach(function(el){
+      el.classList.toggle("on", el.getAttribute("data-al-firm") === key);
+    });
+    menu.classList.remove("open");
+  }
+  fillAlarmProducts();
+}
+function fillAlarmFirms(){
+  var menu = document.getElementById("alFirmMenu");
+  var hid = document.getElementById("alFirm");
+  if(!menu || !hid) return;
+  var list = (typeof getFirmOrder==="function") ? getFirmOrder() : ORDER.slice();
+  var cur = hid.value && list.indexOf(hid.value) >= 0 ? hid.value : (list[0] || "");
+  menu.innerHTML = list.map(function(k){
+    return '<button type="button" class="al-firm-item" data-al-firm="'+k+'">'+firmLogo(k)+"<span>"+alarmFirmName(k)+"</span></button>";
+  }).join("");
+  setAlarmFirm(cur);
+}
+function alarmProductFlag(id, label, kind){
+  if(typeof flagFor !== "function") return "";
+  return flagFor(id, label, kind) || "";
+}
+function setAlarmProduct(id, label, kind){
+  var hid = document.getElementById("alProduct");
+  var kEl = document.getElementById("alProductKind");
+  var lEl = document.getElementById("alProductLabel");
+  var btn = document.getElementById("alProductBtn");
+  var menu = document.getElementById("alProductMenu");
+  if(hid) hid.value = id || "";
+  if(kEl) kEl.value = kind || "";
+  if(lEl) lEl.value = label || "";
+  if(btn){
+    if(!id) btn.innerHTML = "<span>Fiyat yok</span>";
+    else btn.innerHTML = alarmProductFlag(id, label, kind) + "<span>" + (label || id) + "</span>";
+  }
+  if(menu){
+    menu.querySelectorAll("[data-al-prod]").forEach(function(el){
+      el.classList.toggle("on", el.getAttribute("data-al-prod") === id);
+    });
+    menu.classList.remove("open");
+  }
+}
+function fillAlarmProducts(){
+  var firm = (document.getElementById("alFirm")||{}).value;
+  var menu = document.getElementById("alProductMenu");
+  var hid = document.getElementById("alProduct");
+  if(!menu || !hid) return;
+  var opts = firmProductOptions(firm);
+  if(!opts.length){
+    menu.innerHTML = "";
+    setAlarmProduct("", "", "");
+    return;
+  }
+  menu.innerHTML = opts.map(function(o){
+    var lab = String(o.label||o.id).replace(/"/g, "");
+    return '<button type="button" class="al-firm-item" data-al-prod="'+o.id+'" data-kind="'+(o.kind||"")+'" data-label="'+lab+'">'+
+      alarmProductFlag(o.id, o.label, o.kind)+"<span>"+(o.label||o.id)+"</span></button>";
+  }).join("");
+  var cur = opts.filter(function(o){ return o.id === hid.value; })[0] || opts[0];
+  setAlarmProduct(cur.id, cur.label, cur.kind);
+}
+function renderAlarmList(){
+  var box = document.getElementById("alList");
+  if(!box) return;
+  if(!priceAlarms.length){
+    box.innerHTML = '<div class="hint">Kurulu alarm yok.</div>';
+    return;
+  }
+  box.innerHTML = priceAlarms.map(function(a){
+    var op = a.op === "above" ? "üstüne çıkınca" : "altına düşünce";
+    var side = a.side === "alis" ? "alış" : "satış";
+    var fl = alarmProductFlag(a.product, a.label, a.kind);
+    return '<div class="alarm-item"><div><div class="who">'+firmLogo(a.firm)+'<span>'+alarmFirmName(a.firm)+'</span></div>'+fl+a.label+'<br>'+side+' '+op+' <b>'+a.price+'</b></div><button type="button" data-del-alarm="'+a.id+'">Sil</button></div>';
+  }).join("");
+}
+function openAlarmModal(){
+  var m = document.getElementById("alarmModal");
+  if(!m) return;
+  fillAlarmFirms();
+  fillAlarmProducts();
+  renderAlarmList();
+  m.classList.add("open");
+  try {
+    if(typeof Notification!=="undefined" && Notification.permission==="default") Notification.requestPermission();
+  } catch(e){}
+}
+function saveAlarmFromForm(){
+  var firmEl = document.getElementById("alFirm");
+  var pid = (document.getElementById("alProduct")||{}).value;
+  var priceEl = document.getElementById("alPrice");
+  if(!firmEl || !priceEl) return;
+  var f = firmEl.value;
+  if(!f || !pid){ alert("Firma ve ürün seçin. Fiyatlar yüklendikten sonra ürün listesi dolar."); return; }
+  var price = parseAlarmPrice(priceEl.value);
+  if(!(price > 0)){ alert("Geçerli bir eşik fiyat yazın."); return; }
+  priceAlarms.push({
+    id: "a"+Date.now(),
+    firm: f,
+    product: pid,
+    label: (document.getElementById("alProductLabel")||{}).value || pid,
+    kind: (document.getElementById("alProductKind")||{}).value || "doviz",
+    side: (document.getElementById("alSide")||{}).value || "satis",
+    op: (document.getElementById("alOp")||{}).value || "below",
+    price: price,
+    enabled: true,
+    hot: false
+  });
+  priceEl.value = "";
+  savePriceAlarms();
+  try {
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.resume) audioCtx.resume();
+  } catch(e){}
+}
+function initPriceAlarms(){
+  var btn = document.getElementById("btnAlarm");
+  if(btn) btn.onclick = function(){
+    try {
+      if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      if(audioCtx.resume) audioCtx.resume();
+    } catch(e){}
+    openAlarmModal();
+  };
+  var close = document.getElementById("alClose");
+  if(close) close.onclick = function(){ document.getElementById("alarmModal").classList.remove("open"); };
+  /* Modal içi tıklar capture'da kesildiği için kayıt ve sil burada */
+  document.addEventListener("click", function(ev){
+    var t = ev.target;
+    if(!t) return;
+    var firmItem = t.closest && t.closest("[data-al-firm]");
+    if(firmItem){
+      ev.preventDefault();
+      setAlarmFirm(firmItem.getAttribute("data-al-firm"));
+      return;
+    }
+    var firmBtn = (t.id === "alFirmBtn") ? t : (t.closest && t.closest("#alFirmBtn"));
+    if(firmBtn){
+      ev.preventDefault();
+      var menu = document.getElementById("alFirmMenu");
+      var pmenu = document.getElementById("alProductMenu");
+      if(pmenu) pmenu.classList.remove("open");
+      if(menu) menu.classList.toggle("open");
+      return;
+    }
+    var prodItem = t.closest && t.closest("[data-al-prod]");
+    if(prodItem){
+      ev.preventDefault();
+      setAlarmProduct(prodItem.getAttribute("data-al-prod"), prodItem.getAttribute("data-label"), prodItem.getAttribute("data-kind"));
+      return;
+    }
+    var prodBtn = (t.id === "alProductBtn") ? t : (t.closest && t.closest("#alProductBtn"));
+    if(prodBtn){
+      ev.preventDefault();
+      var fmenu = document.getElementById("alFirmMenu");
+      var pmenu2 = document.getElementById("alProductMenu");
+      if(fmenu) fmenu.classList.remove("open");
+      if(pmenu2) pmenu2.classList.toggle("open");
+      return;
+    }
+    var closeBtn = (t.id === "alClose") ? t : (t.closest && t.closest("#alClose"));
+    if(closeBtn){
+      ev.preventDefault();
+      var m = document.getElementById("alarmModal");
+      if(m) m.classList.remove("open");
+      return;
+    }
+    var saveBtn = (t.id === "alSave") ? t : (t.closest && t.closest("#alSave"));
+    if(saveBtn){
+      ev.preventDefault();
+      saveAlarmFromForm();
+      return;
+    }
+    var delBtn = t.getAttribute && t.getAttribute("data-del-alarm") ? t : (t.closest && t.closest("[data-del-alarm]"));
+    if(delBtn){
+      var del = delBtn.getAttribute("data-del-alarm");
+      ev.preventDefault();
+      priceAlarms = priceAlarms.filter(function(a){ return a.id !== del; });
+      savePriceAlarms();
+    }
+  }, true);
+  paintAlarmBadge();
+  renderAlarmList();
+}
+function checkPriceAlarms(){
+  if(!priceAlarms.length) return;
+  var fired = [];
+  priceAlarms.forEach(function(a){
+    var rows = store[a.firm] || [];
+    var row = null;
+    for(var i=0;i<rows.length;i++){
+      var id = (typeof normalizeProductId==="function") ? normalizeProductId(rows[i]) : (rows[i].kod||rows[i].name);
+      if(String(id) === String(a.product)){ row = rows[i]; break; }
+    }
+    if(!row) return;
+    var px = a.side === "alis" ? Number(row.alis) : Number(row.satis);
+    if(!(px > 0)) return;
+    var hit = a.op === "above" ? px >= Number(a.price) : px <= Number(a.price);
+    if(hit && !a.hot){
+      a.hot = true;
+      fired.push(a.id);
+      var sideTxt = a.side === "alis" ? "alış" : "satış";
+      var opTxt = a.op === "above" ? "üstüne çıktı" : "altına düştü";
+      var shown = (a.kind==="doviz" && typeof fmtFx4==="function") ? fmtFx4(px) : (typeof fmt==="function" ? fmt(px) : String(px));
+      var msg = alarmFirmName(a.firm)+" · "+a.label+" "+sideTxt+" "+shown+" (eşik "+a.price+" "+opTxt+")";
+      try { playAlarmSound(); } catch(e){}
+      var toast = document.getElementById("toast");
+      var tb = document.getElementById("toastBody");
+      var th = toast && toast.querySelector("h4");
+      if(th) th.textContent = "🔔 Fiyat alarmı";
+      if(tb) tb.textContent = msg;
+      if(toast){
+        toast.classList.add("show");
+        clearTimeout(checkPriceAlarms._t);
+        checkPriceAlarms._t = setTimeout(function(){ toast.classList.remove("show"); }, 8000);
+      }
+      try {
+        if(typeof Notification!=="undefined" && Notification.permission==="granted"){
+          new Notification("RADAR fiyat alarmı", { body: msg, tag: "alarm-"+a.id });
+        }
+      } catch(e){}
+    } else if(!hit){
+      a.hot = false;
+    }
+  });
+  if(fired.length){
+    priceAlarms = priceAlarms.filter(function(a){ return fired.indexOf(a.id) < 0; });
+    savePriceAlarms();
+  }
+}
+
+function playAlarmSound(){
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    var ctx = audioCtx;
+    var start = function(){
+      var t0 = ctx.currentTime + 0.02;
+      [880, 880, 1175].forEach(function(freq, i){
+        var o = ctx.createOscillator();
+        var g = ctx.createGain();
+        o.type = "square";
+        o.frequency.value = freq;
+        o.connect(g); g.connect(ctx.destination);
+        var t = t0 + i * 0.22;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.12, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+        o.start(t);
+        o.stop(t + 0.2);
+      });
+    };
+    if(ctx.state === "suspended" && ctx.resume){
+      ctx.resume().then(start).catch(start);
+    } else start();
+  }catch(e){}
 }
 
 function playBeep(){
@@ -5263,12 +5679,19 @@ function renderCompare(){
       var q = p.quotes[f];
       return q && !isNaN(q.alis) && !isNaN(q.satis);
     });
+    /* Tüm firmalar — global max alış / min satış (mevcut davranış) */
     var maxAlis = null, minSatis = null, maxFirm = null, minFirm = null;
+    /* Samsun içi — ayrı max alış / min satış */
+    var ssMaxA = null, ssMinS = null, ssMaxF = null, ssMinF = null;
     activeFirms.forEach(function(k){
       var q = p.quotes[k];
       if(!q || isNaN(q.alis) || isNaN(q.satis)) return;
       if(maxAlis == null || q.alis > maxAlis){ maxAlis = q.alis; maxFirm = k; }
       if(minSatis == null || q.satis < minSatis){ minSatis = q.satis; minFirm = k; }
+      if(typeof isSamsunFirm === "function" ? isSamsunFirm(k) : false){
+        if(ssMaxA == null || q.alis > ssMaxA){ ssMaxA = q.alis; ssMaxF = k; }
+        if(ssMinS == null || q.satis < ssMinS){ ssMinS = q.satis; ssMinF = k; }
+      }
     });
 
     // Sabit emoji bayrak (img yok → pırpır yok)
@@ -5286,14 +5709,21 @@ function renderCompare(){
       } else {
         var ba = (maxFirm===k) ? " best" : "";
         var bs = (minFirm===k) ? " best" : "";
-        html += '<div class="fa'+ba+'">'+(ba?"":"")+'A: '+(p.kind==="doviz"||isFxId(id)?fmtFx4(q.alis):fmt(q.alis))+'</div>';
-        html += '<div class="fs'+bs+'">'+(bs?"":"")+'S: '+(p.kind==="doviz"||isFxId(id)?fmtFx4(q.satis):fmt(q.satis))+'</div>';
+        /* Samsun zirve — global best ile aynı hücredeyse global renk öncelikli */
+        var sa = (ssMaxF===k && maxFirm!==k) ? " best-ss" : "";
+        var ss = (ssMinF===k && minFirm!==k) ? " best-ss" : "";
+        if(ssMaxF===k && maxFirm===k) sa = ""; /* global best zaten yeşil */
+        if(ssMinF===k && minFirm===k) ss = "";
+        if(ssMaxF===k && maxFirm!==k) ba = " best-ss";
+        if(ssMinF===k && minFirm!==k) bs = " best-ss";
+        html += '<div class="fa'+ba+'">A: '+(p.kind==="doviz"||isFxId(id)?fmtFx4(q.alis):fmt(q.alis))+'</div>';
+        html += '<div class="fs'+bs+'">S: '+(p.kind==="doviz"||isFxId(id)?fmtFx4(q.satis):fmt(q.satis))+'</div>';
       }
       html += '</div>';
     });
     html += '</div>';
 
-    // Zirve — satırın en sağı (firma adı + logo yan yana)
+    // Zirve — global + Samsun
     html += '<div class="cmp-card-side">';
     if(maxFirm != null){
       html += '<span class="pill buy">Alış '+(p.kind==="doviz"||isFxId(id)?fmtFx4(maxAlis):fmt(maxAlis))+
@@ -5302,6 +5732,14 @@ function renderCompare(){
     if(minFirm != null){
       html += '<span class="pill sell">Satış '+(p.kind==="doviz"||isFxId(id)?fmtFx4(minSatis):fmt(minSatis))+
         '<br><small class="pill-firm">'+firmLogo(minFirm)+'<span>'+SOURCES[minFirm].name.split(" ")[0]+'</span></small></span>';
+    }
+    if(ssMaxF != null && ssMaxA != null){
+      html += '<span class="pill ss-buy" title="Samsun içi en yüksek alış">Samsun Alış '+(p.kind==="doviz"||isFxId(id)?fmtFx4(ssMaxA):fmt(ssMaxA))+
+        '<br><small class="pill-firm">'+firmLogo(ssMaxF)+'<span>'+SOURCES[ssMaxF].name.split(" ")[0]+'</span></small></span>';
+    }
+    if(ssMinF != null && ssMinS != null){
+      html += '<span class="pill ss-sell" title="Samsun içi en düşük satış">Samsun Satış '+(p.kind==="doviz"||isFxId(id)?fmtFx4(ssMinS):fmt(ssMinS))+
+        '<br><small class="pill-firm">'+firmLogo(ssMinF)+'<span>'+SOURCES[ssMinF].name.split(" ")[0]+'</span></small></span>';
     }
     if(maxAlis != null && minSatis != null){
       var tl = maxAlis - minSatis;
@@ -6383,6 +6821,7 @@ function loadAll(){
       try { renderTicker(); } catch(e){}
       try { renderSummary(); } catch(e){}
       try { renderFirmMenu(); } catch(e){}
+      try { if(typeof checkPriceAlarms==="function") checkPriceAlarms(); } catch(e){}
       if(finalPass){
         try { if(typeof renderCompare==="function") renderCompare(); } catch(e){}
         try { if(typeof renderArb==="function") renderArb(); } catch(e){}
@@ -6390,6 +6829,7 @@ function loadAll(){
           var ops = (typeof findArbitrage==="function") ? findArbitrage() : [];
           if(typeof notifyArb==="function") notifyArb(ops);
         } catch(e){}
+        try { if(typeof checkPriceAlarms==="function") checkPriceAlarms(); } catch(e){}
         try {
           var modal = document.getElementById("avgDetailModal");
           if(modal && modal.classList.contains("open") && window.__openSumPid && typeof openSumDetail==="function"){
@@ -6815,6 +7255,7 @@ updateFbStatus();
 if(typeof Notification!=="undefined" && Notification.permission==="default") Notification.requestPermission();
 
 applyTheme();
+try{ initPriceAlarms(); }catch(e){ console.warn("alarm", e); }
 try{preloadFlags();}catch(e){}
 
 (function(){
