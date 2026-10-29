@@ -812,26 +812,30 @@
     .cmp-cards{display:flex;flex-direction:column;gap:8px}
     .cmp-card{
       display:grid!important;
-      grid-template-columns:minmax(100px,140px) 1fr minmax(160px,200px)!important;
-      gap:8px!important;align-items:center!important;
-      padding:10px 12px!important;
+      grid-template-columns:108px minmax(0,1fr) max-content!important;
+      gap:10px!important;align-items:stretch!important;
+      padding:10px 12px!important;width:100%!important;
     }
     .cmp-card-firms{
-      display:flex!important;
-      flex-wrap:nowrap!important;
-      gap:6px!important;
-      overflow-x:auto;
+      display:grid!important;
+      grid-template-columns:repeat(var(--firm-n, 5), minmax(0, 1fr))!important;
+      gap:8px!important;
+      width:100%!important;min-width:0!important;
+      padding:0!important;overflow:visible!important;
     }
     .cmp-firm-box{
-      flex:1 1 0;min-width:100px;max-width:160px;
-      min-height:auto!important;padding:6px 8px!important;
+      width:100%!important;max-width:none!important;min-width:0!important;
+      box-sizing:border-box!important;height:100%!important;
+      padding:8px 10px!important;
     }
     .cmp-card-side{
       grid-column:auto!important;
       flex-direction:column!important;
       border-top:none!important;padding-top:0!important;
       gap:4px!important;align-items:stretch!important;
+      align-self:center!important;
     }
+    .cmp-card-prod{align-self:center!important}
     .cmp-card-side .pill{width:100%;justify-content:flex-start}
     .cmp-card-prod .pname{font-size:14px}
     .cmp-card-prod .flag-emoji{font-size:16px!important;margin-right:4px}
@@ -3680,11 +3684,10 @@ function findArbitrage(){
       if(!sell || xx.alis > sell.alis) sell = xx;
     });
     if(!buy||!sell||buy.src===sell.src) return;
-    /* 4 hane hassasiyetle makas / yüzde */
+    /* 4 hane: pozitif makas = aktif fırsat */
     var spread = Number((sell.alis - buy.satis).toFixed(4));
     var pct = buy.satis > 0 ? Number(((spread / buy.satis) * 100).toFixed(4)) : 0;
-    /* Daha duyarlı: çok küçük pozitif farkları da göster */
-    if(pct > 0.001) ops.push({id:m.id,label:m.label,buyFrom:buy,sellTo:sell,spread:spread,pct:pct,strong:pct>=minPct,kind:/usd|eur|gbp|chf|aud|cad|sar|jpy/i.test(m.id)?"doviz":"altin"});
+    if(spread > 0) ops.push({id:m.id,label:m.label,buyFrom:buy,sellTo:sell,spread:spread,pct:pct,strong:true,kind:/usd|eur|gbp|chf|aud|cad|sar|jpy/i.test(m.id)?"doviz":"altin"});
   });
   ops.sort(function(a,b){return b.pct-a.pct;});
   return ops;
@@ -5243,10 +5246,10 @@ function renderSummary(){
     var fl = "";
     try { if(t.kind!=="altin" && typeof flagFor==="function") fl = flagFor(t.id,t.label,"doviz")||""; } catch(e){}
     html += '<div class="sum-card sum-prod-card sum-tail hot-arb clickable" id="sumArbCard" data-go="arb" title="Arbitraj menüsüne git">'+
-      '<div class="lbl">⚡ Aktif fırsat</div>'+
+      '<div class="lbl">⚡ AKTİF FIRSAT</div>'+
       '<div class="sum-as">'+
         '<div class="sum-a"><span class="k">Ürün</span><span class="v" style="font-size:13px;color:var(--text)">'+fl+' '+standardName(t.id,t.label)+'</span></div>'+
-        '<div class="sum-s"><span class="k">Getiri</span><span class="v">%'+Number(t.pct).toFixed(2)+'</span><span class="f">Kâr '+fmt(t.spread)+' ₺</span></div>'+
+        '<div class="sum-s"><span class="k">Getiri</span><span class="v">%'+Number(t.pct).toFixed(4)+'</span><span class="f">Kâr '+fmt(t.spread)+' ₺</span></div>'+
         '<div class="f" style="margin-top:4px">'+(t.buyFrom&&t.buyFrom.name?t.buyFrom.name.split(" ")[0]:"")+' → '+(t.sellTo&&t.sellTo.name?t.sellTo.name.split(" ")[0]:"")+'</div>'+
       '</div></div>';
   } else {
@@ -5700,7 +5703,7 @@ function renderCompare(){
     html += '<div class="cmp-card-prod"><div class="pname">'+fl+' '+p.label+'</div>';
     html += '<div class="pfull">'+fullName(id, p.label)+'</div></div>';
 
-    html += '<div class="cmp-card-firms">';
+    html += '<div class="cmp-card-firms" style="--firm-n:'+activeFirms.length+'">';
     activeFirms.forEach(function(k){
       var q = p.quotes[k];
       html += '<div class="cmp-firm-box"><div class="fn">'+firmLogo(k)+SOURCES[k].name.split(" ")[0]+'</div>';
@@ -5846,6 +5849,8 @@ function renderArb(){
 
     var bestBuy = null, bestSell = null; // bestBuy = en düşük satış (satın al), bestSell = en yüksek alış (bozdur)
     list.forEach(function(q){
+      q.alis = Number(Number(q.alis).toFixed(4));
+      q.satis = Number(Number(q.satis).toFixed(4));
       if(!bestBuy || q.satis < bestBuy.satis) bestBuy = q;
       if(!bestSell || q.alis > bestSell.alis) bestSell = q;
     });
@@ -5853,11 +5858,10 @@ function renderArb(){
     var netMakas = null, pct = null, kar = null, strong = false, sameFirm = true;
     if(bestBuy && bestSell){
       sameFirm = bestBuy.src === bestSell.src;
-      netMakas = bestBuy.satis - bestSell.alis; // piyasa içi makas (satış - alış) genelde pozitif
-      // arbitraj kârı: yüksek alış firmasına sat, düşük satış firmasından al
-      kar = bestSell.alis - bestBuy.satis;
-      pct = bestBuy.satis > 0 ? (kar / bestBuy.satis) * 100 : 0;
-      strong = !sameFirm && pct >= minPct;
+      netMakas = Number((bestBuy.satis - bestSell.alis).toFixed(4));
+      kar = Number((bestSell.alis - bestBuy.satis).toFixed(4));
+      pct = bestBuy.satis > 0 ? Number(((kar / bestBuy.satis) * 100).toFixed(4)) : 0;
+      strong = !sameFirm && kar > 0;
     }
 
     rows.push({
@@ -5919,11 +5923,11 @@ function renderArb(){
     return { label:r.label, pct: r.bestSell.alis>0 ? ((r.bestBuy.satis-r.bestSell.alis)/r.bestSell.alis*100) : 0 };
   }).sort(function(a,b){return a.pct-b.pct;})[0];
   sum.innerHTML =
-      '<div class="arb-stat'+(ops.length?" hot":"")+'"><div class="lbl">Aktif fırsat</div><div class="big">'+ops.length+'</div><div class="sub">Eşik %'+minPct+(ops[0] ? ' · '+standardName(ops[0].id,ops[0].label) : '')+'</div></div>'+
-      '<div class="arb-stat"><div class="lbl">En güçlü döviz</div><div class="big">'+(topDoviz && topDoviz.pct>0 ? ('%'+topDoviz.pct.toFixed(2)) : '—')+'</div><div class="sub">'+(topDoviz && topDoviz.pct>0 ? (standardName(topDoviz.id,topDoviz.label)+' · kâr '+fmt(topDoviz.kar)+' ₺') : 'Pozitif makas yok')+'</div></div>'+
-      '<div class="arb-stat"><div class="lbl">En güçlü altın</div><div class="big">'+(topAltin && topAltin.pct>0 ? ('%'+topAltin.pct.toFixed(2)) : '—')+'</div><div class="sub">'+(topAltin && topAltin.pct>0 ? (standardName(topAltin.id,topAltin.label)+' · kâr '+fmt(topAltin.kar)+' ₺') : 'Pozitif makas yok')+'</div></div>'+
+      '<div class="arb-stat'+(ops.length?" hot":"")+'"><div class="lbl">AKTİF FIRSAT</div><div class="big">'+ops.length+'</div><div class="sub">4 hane'+(ops[0] ? ' · '+standardName(ops[0].id,ops[0].label) : '')+'</div></div>'+
+      '<div class="arb-stat"><div class="lbl">En güçlü döviz</div><div class="big">'+(topDoviz && topDoviz.pct>0 ? ('%'+topDoviz.pct.toFixed(4)) : '—')+'</div><div class="sub">'+(topDoviz && topDoviz.pct>0 ? (standardName(topDoviz.id,topDoviz.label)+' · kâr '+fmt(topDoviz.kar)+' ₺') : 'Pozitif makas yok')+'</div></div>'+
+      '<div class="arb-stat"><div class="lbl">En güçlü altın</div><div class="big">'+(topAltin && topAltin.pct>0 ? ('%'+topAltin.pct.toFixed(4)) : '—')+'</div><div class="sub">'+(topAltin && topAltin.pct>0 ? (standardName(topAltin.id,topAltin.label)+' · kâr '+fmt(topAltin.kar)+' ₺') : 'Pozitif makas yok')+'</div></div>'+
       (ops[0]
-        ? ('<div class="arb-stat hot"><div class="lbl">En yüksek kâr</div><div class="big">'+fmt(ops[0].spread)+' ₺</div><div class="sub">%'+ops[0].pct.toFixed(2)+' · '+standardName(ops[0].id,ops[0].label)+'<br>'+ops[0].buyFrom.name+' → '+ops[0].sellTo.name+'</div></div>')
+        ? ('<div class="arb-stat hot"><div class="lbl">En yüksek kâr</div><div class="big">'+fmt(ops[0].spread)+' ₺</div><div class="sub">%'+Number(ops[0].pct).toFixed(4)+' · '+standardName(ops[0].id,ops[0].label)+'<br>'+ops[0].buyFrom.name+' → '+ops[0].sellTo.name+'</div></div>')
         : ('<div class="arb-stat"><div class="lbl">En dar piyasa makası</div><div class="big">'+(narrow ? ('%'+Math.abs(narrow.pct).toFixed(2)) : '—')+'</div><div class="sub">'+(narrow ? narrow.label : '')+'</div></div>'));
   }
 
@@ -5959,7 +5963,7 @@ function renderArb(){
   showRows.forEach(function(r){
     var statusPill /*arb*/, statusExtra = "";
     if(r.strong){
-      statusPill = '<span class="arb-pill hot">⚡ Fırsat aktif</span>';
+      statusPill = '<span class="arb-pill hot">⚡ AKTİF FIRSAT</span>';
       statusExtra = '<div class="arb-kar-line">Kâr '+fmtArbPx(r.id, r.kar)+' ₺</div>';
     } else if(r.pct != null && !r.sameFirm && r.pct > 0.05){
       statusPill = '<span class="arb-pill ok">Dar makas</span>';
@@ -5981,7 +5985,7 @@ function renderArb(){
         '<div class="phint">Satın alma</div></div>'+
       '<div class="arb-makas">'+
         '<div class="mval">'+(r.kar != null && !r.sameFirm ? fmtArbPx(r.id, r.kar)+' ₺' : (r.netMakas != null ? fmtArbPx(r.id, Math.abs(r.netMakas))+' ₺' : "—"))+'</div>'+
-        '<div class="mpct">'+(r.pct != null && !r.sameFirm ? "%"+(isFxId(r.id)?r.pct.toFixed(4):r.pct.toFixed(2)) : "—")+'</div></div>'+
+        '<div class="mpct">'+(r.pct != null && !r.sameFirm ? "%"+Number(r.pct).toFixed(4) : "—")+'</div></div>'+
       '<div class="arb-status">'+statusPill+statusExtra+'</div></div>';
   });
 
