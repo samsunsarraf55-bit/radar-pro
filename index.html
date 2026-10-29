@@ -2664,6 +2664,15 @@
     body.view-arb .hist-box{display:none!important}
     body.view-arb #arbSum{margin-bottom:10px}
 
+  
+    .tick-prices.xau-flash{
+      animation: xauPulse .35s ease;
+    }
+    @keyframes xauPulse{
+      0%{ background: rgba(13,148,136,.25); }
+      100%{ background: transparent; }
+    }
+
   </style>
 </head>
 <body>
@@ -4290,48 +4299,52 @@ function renderTicker(){
     );
   });
 
-  /* XAU ticker — TradingView referans (sadece üst şerit) */
+  /* XAU ticker — tek fiyat (kaynak last; alış/satış yok) */
   try {
     function fmtN(n,d){ return n==null||isNaN(n)?"—":Number(n).toLocaleString("tr-TR",{minimumFractionDigits:d,maximumFractionDigits:d}); }
-    var tv = window.__tvXau || null;
-    var trygA=null, trygS=null, xuA=null, xuS=null, src="TV";
-    if(tv && (tv.xauusd || tv.tryg)){
-      if(tv.tryg){ trygA = tv.tryg.bid; trygS = tv.tryg.ask; }
-      if(tv.xauusd){ xuA = tv.xauusd.bid; xuS = tv.xauusd.ask; }
+    function xauLast(pair){
+      if(!pair) return null;
+      if(pair.last!=null && !isNaN(pair.last)) return Number(pair.last);
+      if(pair.bid!=null && pair.ask!=null && !isNaN(pair.bid) && !isNaN(pair.ask)) return (Number(pair.bid)+Number(pair.ask))/2;
+      if(pair.bid!=null && !isNaN(pair.bid)) return Number(pair.bid);
+      if(pair.ask!=null && !isNaN(pair.ask)) return Number(pair.ask);
+      return null;
     }
-    /* TV yoksa yerel HAS/USD ile yedek hesap */
-    if(trygA==null && trygS==null){
-      var hasA=[], hasS=[], usdA=[], usdS=[];
+    var tv = window.__tvXau || null;
+    var trygP=null, xuP=null;
+    if(tv){
+      trygP = xauLast(tv.tryg);
+      xuP = xauLast(tv.xauusd);
+    }
+    /* kaynak yoksa yerel HAS / hesap */
+    if(trygP==null){
+      var hasA=[];
       ORDER.forEach(function(firm){
         (store[firm]||[]).forEach(function(r){
           var nid = (typeof normalizeProductId==="function")?normalizeProductId(r):"";
-          if(nid==="HAS"){
-            if(r.alis!=null&&!isNaN(+r.alis)) hasA.push(+r.alis);
-            if(r.satis!=null&&!isNaN(+r.satis)) hasS.push(+r.satis);
-          }
-          if(nid==="USD"){
-            if(r.alis!=null&&!isNaN(+r.alis)) usdA.push(+r.alis);
-            if(r.satis!=null&&!isNaN(+r.satis)) usdS.push(+r.satis);
-          }
+          if(nid==="HAS" && r.alis!=null&&!isNaN(+r.alis)) hasA.push(+r.alis);
         });
       });
-      if(hasA.length||hasS.length){
-        src = "yerel";
-        trygA = hasA.length ? hasA.reduce(function(s,x){return s+x;},0)/hasA.length : null;
-        trygS = hasS.length ? hasS.reduce(function(s,x){return s+x;},0)/hasS.length : null;
-        var avgUA = usdA.length ? usdA.reduce(function(s,x){return s+x;},0)/usdA.length : null;
-        var avgUS = usdS.length ? usdS.reduce(function(s,x){return s+x;},0)/usdS.length : null;
-        var usdMid = (avgUA!=null && avgUS!=null) ? (avgUA+avgUS)/2 : (avgUA||avgUS);
-        var OZ = 31.1034768;
-        if(trygA!=null && usdMid) xuA = (trygA*OZ)/usdMid;
-        if(trygS!=null && usdMid) xuS = (trygS*OZ)/usdMid;
+      if(hasA.length) trygP = hasA.reduce(function(s,x){return s+x;},0)/hasA.length;
+    }
+    if(xuP==null && trygP!=null){
+      var usdA=[];
+      ORDER.forEach(function(firm){
+        (store[firm]||[]).forEach(function(r){
+          var nid = (typeof normalizeProductId==="function")?normalizeProductId(r):"";
+          if(nid==="USD" && r.alis!=null&&!isNaN(+r.alis)) usdA.push(+r.alis);
+        });
+      });
+      if(usdA.length){
+        var usdMid = usdA.reduce(function(s,x){return s+x;},0)/usdA.length;
+        xuP = (trygP * 31.1034768) / usdMid;
       }
     }
-    if(trygA!=null || trygS!=null){
-      ticks.push('<span class="tick tick-gold tick-xau" data-avg-id="XAUTRYG" title="XAU/TRYG · Investing.com https://tr.investing.com/currencies/xau-tryg-chart"><span class="tick-label">🌐 XAU/TRYG</span><span class="tick-prices"><b>'+fmtN(trygA,2)+'</b><span class="tick-sep">/</span><b class="satis">'+fmtN(trygS,2)+'</b></span></span>');
+    if(trygP!=null){
+      ticks.push('<span class="tick tick-gold tick-xau" data-avg-id="XAUTRYG" title="XAU/TRYG · '+((tv&&tv.src)||'kaynak')+' · investing / tradingview"><span class="tick-label">🌐 XAU/TRYG</span><span class="tick-prices"><b>'+fmtN(trygP,2)+'</b></span></span>');
     }
-    if(xuA!=null || xuS!=null){
-      ticks.push('<span class="tick tick-xau" data-avg-id="XAUSD" title="XAU/USD · Investing.com https://tr.investing.com/currencies/xau-usd-chart"><span class="tick-label">🌐 XAU/USD</span><span class="tick-prices"><b>'+fmtN(xuA,2)+'</b><span class="tick-sep">/</span><b class="satis">'+fmtN(xuS,2)+'</b></span></span>');
+    if(xuP!=null){
+      ticks.push('<span class="tick tick-xau" data-avg-id="XAUSD" title="XAU/USD · '+((tv&&tv.src)||'—')+(tv&&tv.fetchMs!=null?(' · '+tv.fetchMs+'ms'):'')+'"><span class="tick-label">🌐 XAU/USD</span><span class="tick-prices"><b>'+fmtN(xuP,2)+'</b></span></span>');
     }
   } catch(e){ console.warn("xau ticker", e); }
 
@@ -5512,40 +5525,107 @@ function parseIlkayClient(html){
 
 
 
-/* —— XAU referans: Investing.com (birincil)
- * XAU/TRYG: https://tr.investing.com/currencies/xau-tryg-chart
- * XAU/USD:  https://tr.investing.com/currencies/xau-usd-chart
+/* —— XAU anlık: Investing.com (1.) → TradingView (2.)
+ * https://tr.investing.com/currencies/xau-tryg-chart
+ * https://tr.investing.com/currencies/xau-usd-chart
+ * TV: FX_IDC:XAUUSD / FX_IDC:XAUTRYG
  */
 window.__tvXau = window.__tvXau || null;
+window.__xauPollTimer = null;
+window.__xauBusy = false;
+window.__xauLastSig = "";
+
+function _xauSig(d){
+  if(!d) return "";
+  function L(p){
+    if(!p) return "";
+    var v = p.last!=null ? p.last : (p.bid!=null && p.ask!=null ? (Number(p.bid)+Number(p.ask))/2 : (p.bid||p.ask));
+    return v==null||isNaN(v)?"":Number(v).toFixed(6);
+  }
+  return L(d.xauusd)+"|"+L(d.tryg);
+}
+
+function _xauApply(data, src){
+  if(!data || (!data.xauusd && !data.tryg)) return false;
+  var prev = window.__tvXau || {};
+  var merged = {
+    xauusd: data.xauusd || prev.xauusd || null,
+    tryg: data.tryg || prev.tryg || null,
+    updated: Date.now(),
+    src: src || data.src || "Investing.com",
+    links: {
+      xauusd: "https://tr.investing.com/currencies/xau-usd-chart",
+      tryg: "https://tr.investing.com/currencies/xau-tryg-chart"
+    }
+  };
+  var sig = _xauSig(merged);
+  var changed = sig !== window.__xauLastSig;
+  window.__tvXau = merged;
+  if(changed){
+    window.__xauLastSig = sig;
+    try { _xauPatchTicker(merged); } catch(e){
+      try { if(typeof renderTicker==="function") renderTicker(); } catch(e2){}
+    }
+  }
+  return changed;
+}
+
+function _xauPatchTicker(d){
+  function fmtN(n,dec){
+    if(n==null||isNaN(n)) return "—";
+    return Number(n).toLocaleString("tr-TR",{minimumFractionDigits:dec,maximumFractionDigits:dec});
+  }
+  function lastOf(pair){
+    if(!pair) return null;
+    if(pair.last!=null && !isNaN(pair.last)) return Number(pair.last);
+    if(pair.bid!=null && pair.ask!=null) return (Number(pair.bid)+Number(pair.ask))/2;
+    return pair.bid!=null ? Number(pair.bid) : (pair.ask!=null ? Number(pair.ask) : null);
+  }
+  function patch(id, pair, dec){
+    var px = lastOf(pair);
+    if(px==null) return;
+    var node = document.querySelector('.tick[data-avg-id="'+id+'"]');
+    if(!node){
+      if(typeof renderTicker==="function") renderTicker();
+      return;
+    }
+    var prices = node.querySelector(".tick-prices");
+    if(!prices) return;
+    var sig = String(px);
+    if(prices.getAttribute("data-sig") === sig) return;
+    prices.setAttribute("data-sig", sig);
+    prices.innerHTML = '<b>'+fmtN(px,dec)+'</b>';
+    prices.classList.remove("xau-flash");
+    void prices.offsetWidth;
+    prices.classList.add("xau-flash");
+  }
+  patch("XAUTRYG", d.tryg, 2);
+  patch("XAUSD", d.xauusd, 2);
+}
 
 function _parseInvestingHtml(text, kind){
-  /* kind: "usd" | "tryg" */
   if(!text) return null;
   var bid=null, ask=null, last=null;
   try {
-    /* data-test instrument-price-last */
     var m = text.match(/data-test=["']instrument-price-last["'][^>]*>([0-9.,]+)/i)
          || text.match(/instrument-price-last[^>]*>([0-9.,]+)/i)
-         || text.match(/["']last["']\s*:\s*["']?([0-9.]+)/i)
          || text.match(/data-last-price=["']([0-9.]+)/i)
-         || text.match(/class=["'][^"']*last-price[^"']*["'][^>]*>\s*([0-9.,]+)/i);
+         || text.match(/"last"\s*:\s*"?([0-9.]+)/i);
     if(m) last = parseFloat(String(m[1]).replace(/,/g,""));
     var mb = text.match(/data-test=["']instrument-bid-price["'][^>]*>([0-9.,]+)/i)
-          || text.match(/["']bid["']\s*:\s*["']?([0-9.]+)/i);
+          || text.match(/"bid"\s*:\s*"?([0-9.]+)/i);
     var ma = text.match(/data-test=["']instrument-ask-price["'][^>]*>([0-9.,]+)/i)
-          || text.match(/["']ask["']\s*:\s*["']?([0-9.]+)/i);
+          || text.match(/"ask"\s*:\s*"?([0-9.]+)/i);
     if(mb) bid = parseFloat(String(mb[1]).replace(/,/g,""));
     if(ma) ask = parseFloat(String(ma[1]).replace(/,/g,""));
-    /* JSON-LD veya __NEXT_DATA__ */
     if(last==null || isNaN(last)){
       var nx = text.match(/__NEXT_DATA__[^>]*>\s*(\{[\s\S]*?\})\s*<\/script>/);
       if(nx){
         try {
-          var j = JSON.parse(nx[1]);
-          var s = JSON.stringify(j);
-          var lm = s.match(/"last"(?:\s*:\s*|\s*,\s*")([0-9.]+)/);
-          var bm = s.match(/"bid"(?:\s*:\s*|\s*,\s*")([0-9.]+)/);
-          var am = s.match(/"ask"(?:\s*:\s*|\s*,\s*")([0-9.]+)/);
+          var s = nx[1];
+          var lm = s.match(/"last"\s*:\s*"?([0-9.]+)/);
+          var bm = s.match(/"bid"\s*:\s*"?([0-9.]+)/);
+          var am = s.match(/"ask"\s*:\s*"?([0-9.]+)/);
           if(lm) last = parseFloat(lm[1]);
           if(bm) bid = parseFloat(bm[1]);
           if(am) ask = parseFloat(am[1]);
@@ -5554,141 +5634,254 @@ function _parseInvestingHtml(text, kind){
     }
     if((bid==null||isNaN(bid)) && last!=null) bid = last;
     if((ask==null||isNaN(ask)) && last!=null) ask = last;
-    if(bid==null && ask==null) return null;
-    if(bid==null) bid = ask;
-    if(ask==null) ask = bid;
-    /* makas yoksa ince spread ekle (görünüm) */
-    if(bid === ask){
-      var sp = kind==="usd" ? 0.15 : (bid * 0.0003);
-      bid = bid - sp/2;
-      ask = ask + sp/2;
+    if(last==null || isNaN(last)){
+      if(bid!=null && ask!=null) last = (bid+ask)/2;
+      else last = bid!=null ? bid : ask;
     }
-    return { bid: bid, ask: ask, last: last };
+    if(last==null || isNaN(last)) return null;
+    /* Tek fiyat — kaynak last; alış/satış uydurma */
+    return { last: last, bid: last, ask: last };
   } catch(e){ return null; }
 }
 
-function fetchInvestingXau(){
-  var urls = {
-    usd: [
-      "https://tr.investing.com/currencies/xau-usd",
-      "https://tr.investing.com/currencies/xau-usd-chart",
-      "https://www.investing.com/currencies/xau-usd"
-    ],
-    tryg: [
-      "https://tr.investing.com/currencies/xau-tryg",
-      "https://tr.investing.com/currencies/xau-tryg-chart",
-      "https://www.investing.com/currencies/xau-tryg"
-    ]
-  };
+function _fetchHtml(url){
   var base = (typeof getProxyBase==="function" ? getProxyBase() : "") || (typeof DEFAULT_PUBLIC_PROXY==="string" ? DEFAULT_PUBLIC_PROXY : "");
   base = (base||"").replace(/\/$/,"");
-
-  function getHtml(url){
-    var chain = [];
-    if(base){
-      chain.push(function(){
-        return fetch(base+"/api/proxy?url="+encodeURIComponent(url), { cache:"no-store" })
-          .then(function(r){ if(!r.ok) throw new Error("proxy "+r.status); return r.text(); });
-      });
-    }
+  var chain = [];
+  if(base){
     chain.push(function(){
-      return fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(url), { cache:"no-store" })
-        .then(function(r){ if(!r.ok) throw new Error("allorigins "+r.status); return r.text(); });
+      return fetch(base+"/api/proxy?url="+encodeURIComponent(url),{cache:"no-store"})
+        .then(function(r){ if(!r.ok) throw new Error("p"); return r.text(); });
     });
-    chain.push(function(){
-      return fetch("https://corsproxy.io/?"+encodeURIComponent(url), { cache:"no-store", headers:{ "Accept":"text/html" } })
-        .then(function(r){ if(!r.ok) throw new Error("corsproxy "+r.status); return r.text(); });
-    });
-    chain.push(function(){
-      return fetch("https://r.jina.ai/"+url, { cache:"no-store", headers:{ "Accept":"text/plain" } })
-        .then(function(r){ if(!r.ok) throw new Error("jina "+r.status); return r.text(); });
-    });
-    var i=0;
-    function next(err){
-      if(i>=chain.length) return Promise.reject(err||new Error("html fail"));
-      return chain[i++]().catch(function(e){ return next(e); });
-    }
-    return next();
   }
+  chain.push(function(){
+    return fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(url),{cache:"no-store"})
+      .then(function(r){ if(!r.ok) throw new Error("ao"); return r.text(); });
+  });
+  chain.push(function(){
+    return fetch("https://corsproxy.io/?"+encodeURIComponent(url),{cache:"no-store"})
+      .then(function(r){ if(!r.ok) throw new Error("cp"); return r.text(); });
+  });
+  chain.push(function(){
+    return fetch("https://r.jina.ai/"+url,{cache:"no-store",headers:{"Accept":"text/plain"}})
+      .then(function(r){ if(!r.ok) throw new Error("jn"); return r.text(); });
+  });
+  var i=0;
+  function next(err){
+    if(i>=chain.length) return Promise.reject(err||new Error("html"));
+    return chain[i++]().catch(function(e){ return next(e); });
+  }
+  return next();
+}
 
-  function oneKind(kind){
-    var list = urls[kind];
-    var i=0;
+function _fetchInvestingOnly(){
+  var map = {
+    usd: ["https://tr.investing.com/currencies/xau-usd","https://www.investing.com/currencies/xau-usd"],
+    tryg: ["https://tr.investing.com/currencies/xau-tryg","https://www.investing.com/currencies/xau-tryg"]
+  };
+  function one(kind){
+    var list = map[kind], i=0;
     function next(){
       if(i>=list.length) return Promise.resolve(null);
-      var u = list[i++];
-      return getHtml(u).then(function(txt){
-        var p = _parseInvestingHtml(txt, kind);
-        if(!p) throw new Error("parse "+kind);
+      return _fetchHtml(list[i++]).then(function(t){
+        var p = _parseInvestingHtml(t, kind);
+        if(!p) throw new Error("parse");
         return p;
       }).catch(function(){ return next(); });
     }
     return next();
   }
-
-  /* xaus.com yedek (Investing ile uyumlu spot) — CORS açık */
-  function xausFallback(){
-    return Promise.all([
-      fetch("https://xaus.com/api/v1/spot?currency=USD&unit=oz", { cache:"no-store" }).then(function(r){ return r.json(); }),
-      fetch("https://xaus.com/api/v1/spot?currency=TRY&unit=gram", { cache:"no-store" }).then(function(r){ return r.json(); })
-    ]).then(function(arr){
-      var usd = arr[0], tryg = arr[1];
-      var u = usd && (usd.spot_usd_oz != null ? Number(usd.spot_usd_oz) : (usd.xau && Number(usd.xau.price)));
-      var t = tryg && tryg.xau && Number(tryg.xau.price);
-      var out = { xauusd: null, tryg: null, updated: Date.now(), src: "Investing/spot" };
-      if(u && !isNaN(u)) out.xauusd = { bid: u - 0.15, ask: u + 0.15, last: u };
-      if(t && !isNaN(t)) out.tryg = { bid: t * 0.9997, ask: t * 1.0003, last: t };
-      if(!out.xauusd && !out.tryg) throw new Error("xaus empty");
-      return out;
-    });
-  }
-
-  return Promise.all([oneKind("usd"), oneKind("tryg")]).then(function(arr){
-    var usd = arr[0], tryg = arr[1];
-    if(!usd && !tryg) return xausFallback();
-    var out = {
-      xauusd: usd ? { bid: usd.bid, ask: usd.ask, last: usd.last } : null,
-      tryg: tryg ? { bid: tryg.bid, ask: tryg.ask, last: tryg.last } : null,
-      updated: Date.now(),
-      src: "Investing.com",
-      links: {
-        xauusd: "https://tr.investing.com/currencies/xau-usd-chart",
-        tryg: "https://tr.investing.com/currencies/xau-tryg-chart"
-      }
+  return Promise.all([one("usd"), one("tryg")]).then(function(arr){
+    if(!arr[0] && !arr[1]) throw new Error("investing empty");
+    return {
+      xauusd: arr[0] ? { bid:arr[0].bid, ask:arr[0].ask, last:arr[0].last } : null,
+      tryg: arr[1] ? { bid:arr[1].bid, ask:arr[1].ask, last:arr[1].last } : null,
+      src: "Investing.com"
     };
-    /* eksik tarafı xaus ile tamamla */
-    if(!out.xauusd || !out.tryg){
-      return xausFallback().then(function(fb){
-        if(!out.xauusd && fb.xauusd) out.xauusd = fb.xauusd;
-        if(!out.tryg && fb.tryg) out.tryg = fb.tryg;
-        return out;
-      }).catch(function(){ return out; });
-    }
-    return out;
-  }).catch(function(e){
-    console.warn("[RADAR] Investing XAU", e);
-    return xausFallback().catch(function(){ return null; });
-  }).then(function(data){
-    if(!data || (!data.xauusd && !data.tryg)) return null;
-    var prev = window.__tvXau || {};
-    window.__tvXau = {
-      xauusd: data.xauusd || prev.xauusd || null,
-      tryg: data.tryg || prev.tryg || null,
-      updated: Date.now(),
-      src: data.src || "Investing.com",
-      links: data.links || {
-        xauusd: "https://tr.investing.com/currencies/xau-usd-chart",
-        tryg: "https://tr.investing.com/currencies/xau-tryg-chart"
-      }
-    };
-    try { if(typeof renderTicker==="function") renderTicker(); } catch(e){}
-    return window.__tvXau;
   });
 }
 
-/* Geriye uyumluluk */
+function _parseTvScan(json){
+  var out = { xauusd:null, tryg:null, src:"TradingView" };
+  var rows = (json && json.data) ? json.data : [];
+  rows.forEach(function(row){
+    var full = String(row.s||"").toUpperCase();
+    var sym = full.replace(/^.*:/,"");
+    var d = row.d || [];
+    var bid = d[0]!=null ? Number(d[0]) : null;
+    var ask = d[1]!=null ? Number(d[1]) : null;
+    var close = d[2]!=null ? Number(d[2]) : null;
+    if((bid==null||isNaN(bid)) && close!=null) bid = close;
+    if((ask==null||isNaN(ask)) && close!=null) ask = close;
+    if(bid==null && ask==null) return;
+    if(bid==null) bid = ask; if(ask==null) ask = bid;
+    if(sym==="XAUUSD" || full.indexOf("XAUUSD")>=0){
+      if(!out.xauusd || full.indexOf("FX_IDC")>=0) out.xauusd = { bid:bid, ask:ask };
+    }
+    if(sym==="XAUTRYG" || full.indexOf("XAUTRYG")>=0){
+      if(!out.tryg || full.indexOf("FX_IDC")>=0) out.tryg = { bid:bid, ask:ask };
+    }
+  });
+  if(!out.xauusd && !out.tryg) throw new Error("tv empty");
+  return out;
+}
+
+function _fetchTradingViewOnly(){
+  var body = JSON.stringify({
+    symbols: { tickers: ["FX_IDC:XAUUSD","FX_IDC:XAUTRYG","OANDA:XAUUSD"], query:{ types:[] } },
+    columns: ["bid","ask","close"]
+  });
+  var urls = [
+    "https://scanner.tradingview.com/forex/scan",
+    "https://scanner.tradingview.com/cfd/scan"
+  ];
+  var chain = [];
+  urls.forEach(function(u){
+    chain.push(function(){
+      return fetch(u,{ method:"POST", headers:{"Content-Type":"application/json"}, body:body, cache:"no-store" })
+        .then(function(r){ if(!r.ok) throw new Error("tv"); return r.json(); })
+        .then(_parseTvScan);
+    });
+    chain.push(function(){
+      return fetch("https://corsproxy.io/?"+encodeURIComponent(u),{
+        method:"POST", headers:{"Content-Type":"application/json"}, body:body, cache:"no-store"
+      }).then(function(r){ if(!r.ok) throw new Error("tvc"); return r.json(); }).then(_parseTvScan);
+    });
+  });
+  var i=0;
+  function next(err){
+    if(i>=chain.length) return Promise.reject(err||new Error("tv fail"));
+    return chain[i++]().catch(function(e){ return next(e); });
+  }
+  return next();
+}
+
+function _fetchXausOnly(){
+  return Promise.all([
+    fetch("https://xaus.com/api/v1/spot?currency=USD&unit=oz",{cache:"no-store"}).then(function(r){return r.json();}),
+    fetch("https://xaus.com/api/v1/spot?currency=TRY&unit=gram",{cache:"no-store"}).then(function(r){return r.json();})
+  ]).then(function(arr){
+    var u = arr[0] && (arr[0].spot_usd_oz!=null ? Number(arr[0].spot_usd_oz) : (arr[0].xau && Number(arr[0].xau.price)));
+    var t = arr[1] && arr[1].xau && Number(arr[1].xau.price);
+    var out = { xauusd:null, tryg:null, src:"spot" };
+    if(u && !isNaN(u)) out.xauusd = { last: u, bid: u, ask: u };
+    if(t && !isNaN(t)) out.tryg = { last: t, bid: t, ask: t };
+    if(!out.xauusd && !out.tryg) throw new Error("xaus");
+    return out;
+  });
+}
+
+/**
+ * XAU: Investing + TradingView PARALEL yarış.
+ * İlk gelen geçerli fiyat anında yansır; gecikme minimize.
+ * Kazanan kaynak istatistikte tutulur, sonraki turlarda hafif öncelik alır.
+ */
+window.__xauStats = window.__xauStats || { invMs:[], tvMs:[], prefer:null };
+
+function _xauNow(){
+  return (typeof performance!=="undefined" && performance.now) ? performance.now() : Date.now();
+}
+
+function _xauRecord(src, ms){
+  var st = window.__xauStats;
+  var arr = src==="TradingView" ? st.tvMs : st.invMs;
+  arr.push(ms);
+  if(arr.length > 12) arr.shift();
+  function avg(a){ return a.length ? a.reduce(function(s,x){return s+x;},0)/a.length : 99999; }
+  var ai = avg(st.invMs), at = avg(st.tvMs);
+  /* ortalama daha hızlı olanı tercih et */
+  if(st.invMs.length>=2 && st.tvMs.length>=2){
+    st.prefer = at < ai ? "TradingView" : "Investing.com";
+  }
+}
+
+function _xauRaceOne(name, fn){
+  var t0 = _xauNow();
+  return Promise.resolve()
+    .then(fn)
+    .then(function(data){
+      if(!data || (!data.xauusd && !data.tryg)) throw new Error(name+" empty");
+      var ms = Math.round(_xauNow() - t0);
+      data.src = name;
+      data.fetchMs = ms;
+      _xauRecord(name, ms);
+      return data;
+    });
+}
+
+/** İlk başarılı cevap kazanır; diğeri arka planda iptal edilmez ama geç gelirse sadece daha taze ise uygulanır */
+function fetchInvestingXau(){
+  if(window.__xauBusy) return Promise.resolve(window.__tvXau);
+  window.__xauBusy = true;
+  var settled = false;
+  var prefer = (window.__xauStats && window.__xauStats.prefer) || null;
+
+  var inv = _xauRaceOne("Investing.com", _fetchInvestingOnly);
+  var tv  = _xauRaceOne("TradingView", _fetchTradingViewOnly);
+
+  /* Tercih edilen kaynağı önce başlat (mikro öncelik) — ikisi de paralel */
+  var order = prefer === "TradingView" ? [tv, inv] : [inv, tv];
+
+  function applyFirst(data){
+    if(!settled){
+      settled = true;
+      _xauApply(data, data.src);
+      window.__xauBusy = false;
+    } else {
+      /* ikinci kaynak: fiyat farklıysa ve daha yeni kabul edilirse güncelle */
+      try {
+        var sigNew = _xauSig(data);
+        if(sigNew && sigNew !== window.__xauLastSig){
+          _xauApply(data, data.src + " (güncel)");
+        }
+      } catch(e){}
+    }
+    return data;
+  }
+
+  /* Promise.any benzeri: ilk resolve */
+  var winner = new Promise(function(resolve, reject){
+    var fails = 0;
+    function fail(e){
+      fails++;
+      if(fails >= 2) reject(e || new Error("both failed"));
+    }
+    order[0].then(function(d){ resolve(applyFirst(d)); }).catch(fail);
+    order[1].then(function(d){ resolve(applyFirst(d)); }).catch(fail);
+  });
+
+  return winner
+    .catch(function(){
+      /* son çare spot */
+      return _xauRaceOne("spot", _fetchXausOnly).then(applyFirst);
+    })
+    .catch(function(e){
+      console.warn("[RADAR] XAU race", e);
+      window.__xauBusy = false;
+      return null;
+    })
+    .then(function(d){
+      window.__xauBusy = false;
+      return window.__tvXau;
+    });
+}
+
 function fetchTvXau(){ return fetchInvestingXau(); }
 
+/** Agresif poll — iki kaynak yarışır, gecikme minimum */
+function startXauPoll(){
+  if(window.__xauPollTimer) clearInterval(window.__xauPollTimer);
+  var tick = function(){ try{ fetchInvestingXau(); }catch(e){} };
+  tick();
+  /* 800ms: hızlı yenileme; busy bayrağı çakışmayı engeller */
+  window.__xauPollTimer = setInterval(tick, 800);
+  /* sayfa görünür olunca hemen çek */
+  try {
+    document.addEventListener("visibilitychange", function(){
+      if(document.visibilityState === "visible") tick();
+    });
+  } catch(e){}
+}
 
 function loadAll(){
   if(busy) return;
@@ -6158,6 +6351,7 @@ try {
   }
 } catch (e) { console.error("boot", e); try{ loadAll(); }catch(_e){} }
 try { startPoll(); } catch (e) { console.error("startPoll", e); }
+try { if(typeof startXauPoll==="function") startXauPoll(); } catch (e) { console.error("startXauPoll", e); }
 /* Son güvenlik ağı: UI boş kaldıysa tekrar dene */
 try {
   setTimeout(function(){
