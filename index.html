@@ -3442,79 +3442,77 @@ function diffFlash(key, rows){
 
 
 function parseAhlatci(d){
-  /* Çalışan Ahlatcı uygulamasındaki parse mantığı */
+  /* kr.aspx tablo: SMB kodları birebir; XAG=Gümüş, XAU=HAS, CHF asla Gümüş olmaz */
   var text = "";
+  var rows = [], seen = {};
+
+  function add(kod, alis, satis){
+    kod = String(kod||"").trim().toUpperCase();
+    if(!kod || seen[kod]) return;
+    if(/^(EURUSD|XAUUSD|SEPET|XPD|XPT)$/i.test(kod)) return;
+    alis = parseFloat(String(alis).replace(/\s/g,"").replace(",","."));
+    satis = parseFloat(String(satis).replace(/\s/g,"").replace(",","."));
+    if(isNaN(alis) && isNaN(satis)) return;
+    seen[kod] = 1;
+    var kind = "doviz", name = kod;
+    if(kod === "XAU"){ kind = "altin"; name = "HAS"; }
+    else if(kod === "XAG"){ kind = "altin"; name = "Gümüş"; }
+    rows.push({
+      kod: kod,
+      name: name,
+      alis: isNaN(alis) ? null : alis,
+      satis: isNaN(satis) ? null : satis,
+      kind: kind
+    });
+  }
+
   if(typeof d === "string") text = d;
-  else if(d && typeof d === "object"){
-    if(Array.isArray(d)){
-      /* Netlify JSON [{SMB,Al,St}] */
-      var rows0 = [], seen0 = {};
-      d.forEach(function(e){
-        if(!e) return;
-        var kod = String(e.SMB||e.s||e.kod||"").trim().toUpperCase();
-        if(!kod || seen0[kod]) return;
-        if(/EURUSD|XAUUSD|SEPET|XPD|XPT/i.test(kod)) return;
-        seen0[kod]=1;
-        var alis = parseFloat(String(e.Al!=null?e.Al:(e.al!=null?e.al:"")).replace(",","."));
-        var satis = parseFloat(String(e.St!=null?e.St:(e.st!=null?e.st:"")).replace(",","."));
-        if(isNaN(alis)&&isNaN(satis)) return;
-        var kind="doviz", name=kod;
-        if(kod==="XAU"){ kind="altin"; name="HAS"; }
-        else if(kod==="XAG"){ kind="altin"; name="Gümüş"; }
-        rows0.push({kod:kod,name:name,alis:isNaN(alis)?null:alis,satis:isNaN(satis)?null:satis,kind:kind});
-      });
-      if(rows0.length){
-        try{ meta.ahlatci={time:new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}; }catch(e){}
-        return rows0;
-      }
+  else if(d && Array.isArray(d)){
+    d.forEach(function(e){
+      if(!e) return;
+      add(e.SMB||e.s||e.kod, e.Al!=null?e.Al:(e.al!=null?e.al:e.alis), e.St!=null?e.St:(e.st!=null?e.st:e.satis));
+    });
+    if(rows.length){
+      try{ meta.ahlatci={time:new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}; }catch(e){}
+      return rows;
     }
+  } else if(d && typeof d === "object"){
     if(d.html) text = String(d.html);
     else if(d.contents) text = String(d.contents);
-    else try{ text = JSON.stringify(d); }catch(e){ text=""; }
   }
-  if(!text) return [];
 
-  var data = [];
+  if(text){
+    /* 1) Regex — en güvenilir (scope ="row" boşluklu) */
+    var re = /<th[^>]*>\s*([A-Za-z]{2,8})\s*<\/th>\s*<td[^>]*>\s*([0-9]+(?:\.[0-9]+)?)\s*<\/td>\s*<td[^>]*>\s*([0-9]+(?:\.[0-9]+)?)\s*<\/td>/gi;
+    var m;
+    while((m = re.exec(text))) add(m[1], m[2], m[3]);
+
+    /* 2) DOMParser yedek */
+    if(!rows.length && typeof DOMParser !== "undefined"){
+      try {
+        var doc = new DOMParser().parseFromString(text, "text/html");
+        doc.querySelectorAll("tr").forEach(function(tr){
+          var th = tr.querySelector("th");
+          var tds = tr.querySelectorAll("td");
+          if(!th || tds.length < 2) return;
+          add(th.textContent, tds[0].textContent, tds[1].textContent);
+        });
+      } catch(e){}
+    }
+  }
+
+  /* Güvenlik: Gümüş satırı CHF ile aynıysa XAG yok demektir — Gümüş'ü kaldır */
   try {
-    if(typeof DOMParser !== "undefined"){
-      var doc = new DOMParser().parseFromString(text, "text/html");
-      doc.querySelectorAll("table tbody tr, table tr").forEach(function(tr){
-        var th = tr.querySelector("th");
-        var td = tr.querySelectorAll("td");
-        if(!th || td.length < 2) return;
-        var s = (th.textContent||"").trim();
-        var al = (td[0].textContent||"").trim();
-        var st = (td[1].textContent||"").trim();
-        if(s && al && !isNaN(parseFloat(al))) data.push({ s:s, al:al, st:st });
-      });
+    var chf = null, gum = null;
+    rows.forEach(function(r){
+      if(r.kod==="CHF") chf = r;
+      if(r.kod==="XAG") gum = r;
+    });
+    if(gum && chf && Math.abs(Number(gum.alis)-Number(chf.alis)) < 0.05){
+      rows = rows.filter(function(r){ return r.kod !== "XAG"; });
     }
   } catch(e){}
 
-  if(!data.length){
-    var re = /scope\s*=\s*"?row"?\s*>\s*([A-Z]+)\s*<\/th>\s*<td>\s*([0-9.]+)\s*<\/td>\s*<td>\s*([0-9.]+)/gi;
-    var m;
-    while((m = re.exec(text))) data.push({ s:m[1], al:m[2], st:m[3] });
-  }
-  if(!data.length){
-    var re2 = /<tr[^>]*>\s*<th[^>]*>\s*([A-Za-z]{2,8})\s*<\/th>\s*<td[^>]*>\s*([0-9.,]+)\s*<\/td>\s*<td[^>]*>\s*([0-9.,]+)\s*<\/td>/gi;
-    var m2;
-    while((m2 = re2.exec(text))) data.push({ s:m2[1], al:m2[2], st:m2[3] });
-  }
-
-  var rows = [], seen = {};
-  data.forEach(function(r){
-    var kod = String(r.s||"").trim().toUpperCase();
-    if(!kod || seen[kod]) return;
-    if(/EURUSD|XAUUSD|SEPET|XPD|XPT/i.test(kod)) return;
-    seen[kod]=1;
-    var alis = parseFloat(String(r.al).replace(/\s/g,"").replace(",","."));
-    var satis = parseFloat(String(r.st).replace(/\s/g,"").replace(",","."));
-    if(isNaN(alis)&&isNaN(satis)) return;
-    var kind="doviz", name=kod;
-    if(kod==="XAU"){ kind="altin"; name="HAS"; }
-    else if(kod==="XAG"){ kind="altin"; name="Gümüş"; }
-    rows.push({kod:kod,name:name,alis:isNaN(alis)?null:alis,satis:isNaN(satis)?null:satis,kind:kind});
-  });
   try {
     if(rows.length){
       meta.ahlatci = { time: new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit",second:"2-digit"}) };
@@ -3803,6 +3801,12 @@ function buildBestPriceMap(){
 }
 
 function normalizeProductId(r){
+  var kodU = String(r.kod||"").trim().toUpperCase();
+  /* Ahlatcı vb. kodlar — isimden önce kesin eşle */
+  if(kodU==="XAG" || kodU==="AG") return "GUMUS";
+  if(kodU==="XAU" || kodU==="AU") return "HAS";
+  if(kodU==="CHF") return "CHF";
+  if(kodU==="USD"||kodU==="EUR"||kodU==="GBP"||kodU==="AUD"||kodU==="CAD"||kodU==="SAR"||kodU==="JPY"||kodU==="RUB"||kodU==="AED"||kodU==="DKK"||kodU==="SEK"||kodU==="NOK") return kodU;
   var norm = ((r.name||"")+" "+(r.kod||"")).toLowerCase();
   if(/usd|abd dolar/i.test(norm)) return "USD";
   if(/eur|euro/i.test(norm) && !/parite|usd/i.test(norm)) return "EUR";
@@ -3920,25 +3924,40 @@ function shortFirmName(key, name){
 }
 
 function applyFirmColPrefs(key, rows){
-  var p = getFirmPref(key);
-  var list = (rows||[]).map(function(r){ return Object.assign({}, r); });
-  var hidden = p.hidden || [];
-  list = list.filter(function(r){
-    var id = (typeof normalizeProductId==="function") ? normalizeProductId(r) : (r.kod||r.name);
-    return hidden.indexOf(String(id)) < 0;
+  var p = getFirmPref(key) || {};
+  /* Fiyatlar satıra kilitli — sadece sıra/görünür ad/gizleme değişir */
+  var list = (rows||[]).map(function(r){
+    var c = Object.assign({}, r);
+    var pid = c._pid || ((typeof normalizeProductId==="function") ? normalizeProductId(c) : (c.kod||c.name));
+    c._pid = String(pid);
+    /* orijinal fiyatları sakla */
+    c._alis = c.alis;
+    c._satis = c.satis;
+    return c;
   });
+  var hidden = (p.hidden || []).map(String);
+  list = list.filter(function(r){ return hidden.indexOf(String(r._pid)) < 0; });
   var renames = p.renames || {};
   list.forEach(function(r){
-    var id = (typeof normalizeProductId==="function") ? normalizeProductId(r) : (r.kod||r.name);
-    if(renames[id]) r.name = renames[id];
+    if(renames[r._pid]) r.name = renames[r._pid];
+    /* fiyat asla rename/order ile değişmez */
+    r.alis = r._alis;
+    r.satis = r._satis;
   });
-  /* manuel sıra (drag-drop) */
   if(p.order && p.order.length){
     var rank = {};
-    p.order.forEach(function(id, i){ rank[String(id)] = i; });
+    p.order.forEach(function(id, i){
+      var k = String(id);
+      rank[k] = i;
+      /* eski id eşlemeleri */
+      if(k === "XAG") rank["GUMUS"] = i;
+      if(k === "GUMUS") rank["XAG"] = i;
+      if(k === "XAU") rank["HAS"] = i;
+      if(k === "HAS") rank["XAU"] = i;
+    });
     list.sort(function(a,b){
-      var ia = rank[String(normalizeProductId(a))]; if(ia==null) ia = 9999;
-      var ib = rank[String(normalizeProductId(b))]; if(ib==null) ib = 9999;
+      var ia = rank[String(a._pid)]; if(ia==null) ia = 9999;
+      var ib = rank[String(b._pid)]; if(ib==null) ib = 9999;
       return ia - ib;
     });
   } else {
@@ -3988,63 +4007,88 @@ function fillFirmOrderBox(){
   }
   box.innerHTML = "";
   box.className = "firm-order-cards";
-  box.style.display = "flex";
-  box.style.flexWrap = "wrap";
-  box.style.gap = "8px";
-  box.style.minHeight = "60px";
-  delete box.dataset.dragBound;
+  box.setAttribute("style",
+    "display:flex!important;flex-wrap:wrap!important;gap:10px!important;"+
+    "min-height:72px;padding:10px 4px;visibility:visible!important;opacity:1!important;"+
+    "border:1px dashed var(--border,#cbd5e1);border-radius:12px;background:rgba(13,148,136,.04)"
+  );
+
   var list = [];
   try {
-    if(typeof getFirmOrder==="function") list = getFirmOrder() || [];
+    if(typeof getFirmOrder === "function") list = getFirmOrder() || [];
   } catch(e){ list = []; }
-  if(!list.length){
-    try { list = (typeof ORDER!=="undefined" && ORDER.length) ? ORDER.slice() : Object.keys(SOURCES||{}); } catch(e){ list = []; }
-  }
-  /* Her zaman SOURCES anahtarlarını yedekle */
-  if(!list.length){
-    list = ["gunes","solis","kaptan","ilkay","sar","altinkose","vizyon"];
-  }
-  list.forEach(function(k){
+  if(!list.length && typeof ORDER !== "undefined") list = ORDER.slice();
+  if(!list.length && typeof SOURCES !== "undefined") list = Object.keys(SOURCES);
+  if(!list.length) list = ["gunes","solis","kaptan","ilkay","sar","altinkose","vizyon","ahlatci"];
+
+  /* Eksik firmaları ekle (ORDER'daki herkes görünsün) */
+  try {
+    (ORDER || []).forEach(function(k){
+      if(list.indexOf(k) < 0) list.push(k);
+    });
+  } catch(e){}
+
+  list.forEach(function(k, idx){
+    if(!k) return;
     var row = document.createElement("div");
     row.className = "fo-card";
     row.draggable = true;
     row.dataset.firm = k;
-    row.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--card);min-width:88px;cursor:grab";
-    var nm = (SOURCES[k] && SOURCES[k].name) ? SOURCES[k].name : k;
+    row.setAttribute("style",
+      "display:flex!important;flex-direction:column;align-items:center;gap:6px;"+
+      "padding:12px 14px;border:1px solid var(--border,#e2e8f0);border-radius:12px;"+
+      "background:var(--card,#fff);min-width:96px;cursor:grab;user-select:none;"+
+      "box-shadow:0 1px 3px rgba(0,0,0,.06)"
+    );
+    var nm = (typeof SOURCES !== "undefined" && SOURCES[k] && SOURCES[k].name) ? SOURCES[k].name : k;
     var logo = "";
-    try { if(typeof firmLogo==="function") logo = firmLogo(k) || ""; } catch(e){ logo = ""; }
-    row.innerHTML = '<span class="fo-handle" style="color:var(--muted)">☰</span><div class="fo-logo">'+logo+'</div><div class="fo-name" style="font-size:12px;font-weight:700;text-align:center">'+nm+'</div>';
+    try { if(typeof firmLogo === "function") logo = firmLogo(k) || ""; } catch(e){ logo = ""; }
+    if(!logo){
+      logo = '<span class="firm-logo-badge" style="background:#0d9488;color:#fff;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;font-weight:700">'+(nm.charAt(0)||"?").toUpperCase()+'</span>';
+    }
+    row.innerHTML =
+      '<span class="fo-handle" style="color:#94a3b8;font-size:12px">☰</span>'+
+      '<div class="fo-logo" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center">'+logo+'</div>'+
+      '<div class="fo-name" style="font-size:12px;font-weight:700;text-align:center;line-height:1.2;max-width:110px">'+nm+'</div>'+
+      '<div style="font-size:10px;color:#94a3b8">#'+(idx+1)+'</div>';
     box.appendChild(row);
   });
-  try { if(typeof bindFirmOrderDrag==="function") bindFirmOrderDrag(box); } catch(e){ console.warn("drag", e); }
+
+  if(!box.children.length){
+    box.innerHTML = '<div style="padding:12px;color:#64748b;font-size:13px">Firma listesi yüklenemedi. Sayfayı yenileyin.</div>';
+  }
+
+  try { if(typeof bindFirmOrderDrag === "function"){
+    delete box.dataset.dragBound;
+    delete box.dataset.touchBound;
+    bindFirmOrderDrag(box);
+  } } catch(e){ console.warn("drag", e); }
+
   var btn = document.getElementById("firmOrderSave");
-  if(btn && !btn.dataset.bound){
-    btn.dataset.bound = "1";
+  if(btn){
     btn.onclick = function(){
       var arr = [];
-      var b = document.getElementById("firmOrderBox");
-      if(b) b.querySelectorAll("[data-firm]").forEach(function(it){ if(it.dataset.firm) arr.push(it.dataset.firm); });
-      if(typeof saveFirmOrderPref==="function") saveFirmOrderPref(arr);
+      box.querySelectorAll("[data-firm]").forEach(function(it){ if(it.dataset.firm) arr.push(it.dataset.firm); });
+      if(typeof saveFirmOrderPref === "function") saveFirmOrderPref(arr);
       try {
-        var g=document.getElementById("firmGrid");
-        if(g){ g.innerHTML=""; delete g.dataset.filter; }
-        if(typeof renderFirmGrid==="function") renderFirmGrid();
-        if(typeof renderCompare==="function") renderCompare();
-        if(typeof renderArb==="function") renderArb();
+        var g = document.getElementById("firmGrid");
+        if(g){ g.innerHTML = ""; delete g.dataset.filter; }
+        if(typeof renderFirmGrid === "function") renderFirmGrid();
+        if(typeof renderCompare === "function") renderCompare();
+        if(typeof renderArb === "function") renderArb();
       } catch(e){}
-      alert("Firma sırası kaydedildi");
+      alert("Firma sırası kaydedildi ("+arr.length+" firma)");
     };
   }
   var br = document.getElementById("firmOrderReset");
-  if(br && !br.dataset.bound){
-    br.dataset.bound = "1";
+  if(br){
     br.onclick = function(){
-      if(typeof saveFirmOrderPref==="function") saveFirmOrderPref([]);
+      if(typeof saveFirmOrderPref === "function") saveFirmOrderPref([]);
       fillFirmOrderBox();
       try {
-        var g=document.getElementById("firmGrid");
-        if(g){ g.innerHTML=""; delete g.dataset.filter; }
-        if(typeof renderFirmGrid==="function") renderFirmGrid();
+        var g = document.getElementById("firmGrid");
+        if(g){ g.innerHTML = ""; delete g.dataset.filter; }
+        if(typeof renderFirmGrid === "function") renderFirmGrid();
       } catch(e){}
       alert("Varsayılan sıra uygulandı");
     };
@@ -4237,6 +4281,8 @@ function saveFirmSettingsFromUi(fromConfirm){
         var id = item.getAttribute("data-id") || item.dataset.id;
         if(!id) return;
         id = String(id);
+        if(id === "XAG") id = "GUMUS";
+        if(id === "XAU" || id === "AU") id = "HAS";
         p.order.push(id);
         var cb = item.querySelector('input[type="checkbox"]');
         var ren = item.querySelector("input[data-rename]");
@@ -5720,6 +5766,105 @@ function getProxyBase(){
   return def;
 }
 
+
+/** Ahlatcı hızlı çekim: paralel proxy + uzun cache + yüksek timeout */
+function fetchAhlatciFast(){
+  var ahlUrl = "https://www.ahlatcidoviz.com.tr/kr.aspx";
+  var ts = Date.now();
+  var CACHE_KEY = "radar_ahlatci_cache_v1";
+
+  function validate(text){
+    if(text == null) throw new Error("boş");
+    if(typeof text === "object"){
+      if(Array.isArray(text) && text.length) return text;
+      if(text.contents) return String(text.contents);
+      throw new Error("geçersiz");
+    }
+    var s = String(text);
+    if(!s.trim()) throw new Error("boş yanıt");
+    if(/\b404\b/.test(s) && s.length < 120) throw new Error("404");
+    if(s.indexOf("USD") < 0 && s.indexOf("XAU") < 0 && s.indexOf("SMB") < 0) throw new Error("fiyat yok");
+    return s;
+  }
+
+  function one(url, ms){
+    var ctrl = new AbortController();
+    var to = setTimeout(function(){ try{ ctrl.abort(); }catch(e){} }, ms || 12000);
+    return fetch(url, { cache: "no-store", signal: ctrl.signal, mode: "cors" })
+      .then(function(r){
+        clearTimeout(to);
+        if(r.status === 404) throw new Error("404");
+        if(!r.ok) throw new Error(String(r.status));
+        return r.text();
+      })
+      .then(function(t){
+        clearTimeout(to);
+        if(t && t.charAt(0) === "{"){
+          try {
+            var j = JSON.parse(t);
+            if(j && j.contents) return validate(j.contents);
+            if(Array.isArray(j)) return validate(j);
+          } catch(e){}
+        }
+        return validate(t);
+      })
+      .catch(function(e){
+        clearTimeout(to);
+        var msg = (e && e.name === "AbortError") ? "zaman aşımı" : ((e && e.message) || String(e));
+        throw new Error(msg);
+      });
+  }
+
+  function readCache(maxAge){
+    try {
+      var c = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+      if(c && c.data && (Date.now() - (c.t || 0) < (maxAge || 30*60*1000))) return c.data;
+    } catch(e){}
+    return null;
+  }
+
+  var urls = [
+    "https://corx.envx.cn/fetch?url=" + encodeURIComponent(ahlUrl) + "&corx-key=corx_wurhkSx9Z5GkXBs85bu8iyqJ-963qATW&t=" + ts,
+    "https://api.allorigins.win/raw?url=" + encodeURIComponent(ahlUrl) + "&t=" + ts,
+    "https://api.allorigins.win/get?url=" + encodeURIComponent(ahlUrl) + "&t=" + ts,
+    "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(ahlUrl)
+  ];
+  try {
+    if(/\.netlify\.app$/i.test(location.hostname || "")) urls.unshift("/api/ahlatci");
+  } catch(e){}
+
+  return new Promise(function(resolve, reject){
+    var left = urls.length;
+    var done = false;
+    var lastErr = null;
+    urls.forEach(function(u){
+      one(u, 12000).then(function(data){
+        if(done) return;
+        done = true;
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({
+            t: Date.now(),
+            data: typeof data === "string" ? data.slice(0, 80000) : data
+          }));
+        } catch(e){}
+        resolve(data);
+      }).catch(function(e){
+        lastErr = e;
+        left--;
+        if(left <= 0 && !done){
+          var cached = readCache(60*60*1000); /* 1 saat */
+          if(cached){
+            done = true;
+            resolve(cached);
+            return;
+          }
+          reject(lastErr || new Error("Ahlatcı bağlantı hatası"));
+        }
+      });
+    });
+  });
+}
+
 function fetchSource(key){
   var base = (typeof getProxyBase === "function" ? getProxyBase() : "") || "";
   var tries = [];
@@ -5755,78 +5900,19 @@ function fetchSource(key){
   // 3) SAR allorigins
   if(key === "sar"){
     tries.push(function(){
-      return fetchOnce("https://api.allorigins.win/raw?url=" + encodeURIComponent(SOURCES.sar.direct), null, 12000);
+      return fetchOnce("https://api.allorigins.win/raw?url=" + encodeURIComponent(SOURCES.sar.direct), null, 8000);
     });
   }
   if(key === "ahlatci"){
-    /* Kaynak: https://www.ahlatcidoviz.com.tr/kr.aspx
-       Diğer uygulamadaki çalışan yöntem: corx → allorigins (404 /api yok) */
+    /* Tüm proxy'ler PARALEL yarış — ilk geçerli HTML kazanır (~diğer firmalarla senkron) */
     tries = [];
-    var ahlUrl = "https://www.ahlatcidoviz.com.tr/kr.aspx";
-    var ts = Date.now();
-    function ahlValidate(text){
-      if(text == null) throw new Error("boş");
-      if(typeof text === "object"){
-        if(Array.isArray(text) && text.length) return text;
-        if(text.contents) return String(text.contents);
-        throw new Error("geçersiz");
-      }
-      var s = String(text);
-      if(!s.trim()) throw new Error("boş yanıt");
-      if(/\b404\b/.test(s) && s.length < 80) throw new Error("404");
-      if(s.indexOf("USD")<0 && s.indexOf("XAU")<0 && s.indexOf("SMB")<0) throw new Error("fiyat yok");
-      return s;
-    }
-    function ahlFetch(url, ms){
-      var ctrl = new AbortController();
-      var to = setTimeout(function(){ try{ ctrl.abort(); }catch(e){} }, ms||14000);
-      return fetch(url, { cache:"no-store", signal:ctrl.signal, mode:"cors" })
-        .then(function(r){
-          clearTimeout(to);
-          if(r.status === 404) throw new Error("404");
-          if(!r.ok) throw new Error(r.status+" "+(r.statusText||""));
-          return r.text();
-        })
-        .then(function(t){ clearTimeout(to); return ahlValidate(t); })
-        .catch(function(e){
-          clearTimeout(to);
-          var msg = (e && e.name==="AbortError") ? "zaman aşımı" : ((e && e.message)||String(e));
-          throw new Error(msg);
-        });
-    }
-    tries.push(function(){
-      return ahlFetch("https://corx.envx.cn/fetch?url="+encodeURIComponent(ahlUrl)+"&corx-key=corx_wurhkSx9Z5GkXBs85bu8iyqJ-963qATW&t="+ts, 14000);
-    });
-    tries.push(function(){
-      return ahlFetch("https://api.allorigins.win/raw?url="+encodeURIComponent(ahlUrl)+"&t="+ts, 16000);
-    });
-    tries.push(function(){
-      return ahlFetch("https://api.allorigins.win/get?url="+encodeURIComponent(ahlUrl)+"&t="+ts, 16000)
-        .then(function(t){
-          try { var j = JSON.parse(t); if(j && j.contents) return ahlValidate(j.contents); } catch(e){}
-          return ahlValidate(t);
-        });
-    });
-    tries.push(function(){
-      return ahlFetch("https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(ahlUrl), 16000);
-    });
-    /* Netlify function — yalnızca netlify.app */
-    try {
-      var host = (location.hostname||"");
-      if(/\.netlify\.app$/i.test(host)){
-        tries.push(function(){
-          return ahlFetch("/api/ahlatci", 12000).then(function(t){
-            try { return JSON.parse(t); } catch(e){ return ahlValidate(t); }
-          });
-        });
-      }
-    } catch(e){}
+    tries.push(function(){ return fetchAhlatciFast(); });
   }
 
   // 4) İlkay HTML allorigins
   if(key === "ilkay"){
     tries.push(function(){
-      return fetchOnce("https://api.allorigins.win/raw?url=" + encodeURIComponent(SOURCES.ilkay.direct), null, 12000)
+      return fetchOnce("https://api.allorigins.win/raw?url=" + encodeURIComponent(SOURCES.ilkay.direct), null, 8000)
         .then(function(text){
           if(typeof text === "object" && text.data) return text;
           return parseIlkayClient(typeof text === "string" ? text : String(text||""));
@@ -5841,20 +5927,43 @@ function fetchSource(key){
 
   if(!tries.length) tries.push(function(){ return viaProxy(base || DEFAULT_PUBLIC_PROXY); });
 
-  var idx = 0;
-  function next(err){
-    if(idx >= tries.length){
-      var msg = (err && err.message) ? err.message : "Bağlantı hatası";
-      if(/failed to fetch|networkerror|load failed/i.test(msg)){
-        msg = (key==="vizyon"||key==="altinkose")
-          ? "Proxy erişilemedi — güncel tunnel URL ile açın"
-          : msg;
-      }
-      return Promise.reject(new Error(msg));
-    }
-    return tries[idx++]().catch(function(e){ return next(e); });
+  /* İlk 2 kaynağı paralel yarıştır; kazananı kullan, yoksa sırayla devam */
+  if(!tries.length){
+    return Promise.reject(new Error("Kaynak yok"));
   }
-  return next();
+  if(tries.length === 1){
+    return tries[0]();
+  }
+  function racePair(a, b){
+    var done = false;
+    return new Promise(function(resolve, reject){
+      var fails = 0, lastErr = null;
+      function fail(e){
+        lastErr = e;
+        fails++;
+        if(fails >= 2 && !done){ done = true; reject(lastErr || new Error("Bağlantı hatası")); }
+      }
+      a().then(function(v){ if(!done){ done=true; resolve(v); } }).catch(fail);
+      b().then(function(v){ if(!done){ done=true; resolve(v); } }).catch(fail);
+    });
+  }
+  var rest = tries.slice(2);
+  return racePair(tries[0], tries[1]).catch(function(e){
+    var idx = 0;
+    function next(err){
+      if(idx >= rest.length){
+        var msg = (err && err.message) ? err.message : "Bağlantı hatası";
+        if(/failed to fetch|networkerror|load failed/i.test(msg)){
+          msg = (key==="vizyon"||key==="altinkose")
+            ? "Proxy erişilemedi — güncel tunnel URL ile açın"
+            : msg;
+        }
+        return Promise.reject(new Error(msg));
+      }
+      return rest[idx++]().catch(function(e2){ return next(e2); });
+    }
+    return next(e);
+  });
 }
 
 function parseIlkayClient(html){
@@ -6234,7 +6343,7 @@ function startXauPoll(){
   var tick = function(){ try{ fetchInvestingXau(); }catch(e){} };
   tick();
   /* 800ms: hızlı yenileme; busy bayrağı çakışmayı engeller */
-  window.__xauPollTimer = setInterval(tick, 800);
+  window.__xauPollTimer = setInterval(tick, 2500);
   /* sayfa görünür olunca hemen çek */
   try {
     document.addEventListener("visibilitychange", function(){
@@ -6247,79 +6356,123 @@ function loadAll(){
   if(busy) return;
   busy=true;
   try{ var _br=document.getElementById("btnRefresh"); if(_br) _br.disabled=true; }catch(e){}
+  try{ var _dot=document.getElementById("dot"); if(_dot) _dot.className="dot"; }catch(e){}
+  /* Ahlatcı cache: anında göster, arka planda taze veri gelsin */
+  try {
+    if(!(store.ahlatci && store.ahlatci.length)){
+      var _ac = JSON.parse(localStorage.getItem("radar_ahlatci_cache_v1")||"null");
+      if(_ac && _ac.data && (Date.now()-(_ac.t||0) < 15*60*1000)){
+        var _ar = parseAhlatci(_ac.data);
+        if(_ar && _ar.length){
+          store.ahlatci = _ar;
+          meta.ahlatci = meta.ahlatci || {};
+          meta.ahlatci.time = "önbellek";
+          delete meta.ahlatci.error;
+          try { renderFirmGrid(); } catch(e){}
+        }
+      }
+    }
+  } catch(e){}
+
+  var pending = ORDER.length;
+  var uiTimer = null;
+  function scheduleUI(finalPass){
+    if(uiTimer) clearTimeout(uiTimer);
+    uiTimer = setTimeout(function(){
+      try { renderFirmGrid(); } catch(e){}
+      try { renderTicker(); } catch(e){}
+      try { renderSummary(); } catch(e){}
+      try { renderFirmMenu(); } catch(e){}
+      if(finalPass){
+        try { if(typeof renderCompare==="function") renderCompare(); } catch(e){}
+        try { if(typeof renderArb==="function") renderArb(); } catch(e){}
+        try {
+          var ops = (typeof findArbitrage==="function") ? findArbitrage() : [];
+          if(typeof notifyArb==="function") notifyArb(ops);
+        } catch(e){}
+        try {
+          var modal = document.getElementById("avgDetailModal");
+          if(modal && modal.classList.contains("open") && window.__openSumPid && typeof openSumDetail==="function"){
+            openSumDetail(window.__openSumPid, window.__openSumLabel);
+          }
+        } catch(e){}
+        try {
+          if(window.__openHistFirm && typeof openHist==="function"){
+            openHist(window.__openHistFirm, window.__openHistName);
+          }
+        } catch(e){}
+      }
+      try {
+        var anyOk=ORDER.some(function(k){return store[k]&&store[k].length;});
+        var d=document.getElementById("dot"); if(d) d.className="dot"+(anyOk?"":" err");
+        var c=document.getElementById("clock"); if(c) c.textContent=new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+      } catch(e){}
+    }, finalPass ? 0 : 80);
+  }
+
+  function parseKey(key, d){
+    if(key==="kaptan") return parseKaptan(d);
+    if(key==="gunes") return parseGunes(d);
+    if(key==="solis") return parseSolis(d);
+    if(key==="altinkose") return parseAltinkose(d);
+    if(key==="sar") return parseSar(d);
+    if(key==="ilkay") return parseIlkay(d);
+    if(key==="vizyon") return parseVizyon(d);
+    if(key==="ahlatci"){
+      var rows=parseAhlatci(d);
+      if(!rows || !rows.length) throw new Error("Ahlatcı parse boş");
+      return rows;
+    }
+    return [];
+  }
+
   var jobs=ORDER.map(function(key){
     return fetchSource(key).then(function(d){
-      var rows;
-      if(key==="kaptan") rows=parseKaptan(d);
-      else if(key==="gunes") rows=parseGunes(d);
-      else if(key==="solis") rows=parseSolis(d);
-      else if(key==="altinkose") rows=parseAltinkose(d);
-      else if(key==="sar") rows=parseSar(d);
-      else if(key==="ilkay") rows=parseIlkay(d);
-      else if(key==="vizyon") rows=parseVizyon(d);
-      else if(key==="ahlatci"){
-        rows=parseAhlatci(d);
-        if(!rows || !rows.length) throw new Error("Ahlatcı parse boş");
-      }
-      else rows=[];
+      var rows = parseKey(key, d);
       store[key]=rows; delete meta[key].error;
-      recordHistory(key, rows);
+      try{ recordHistory(key, rows); }catch(e){}
+      scheduleUI(false);
     }).catch(function(e){
       var msg=(e&&e.message)||"Hata";
       if(/Failed to fetch|NetworkError|CORS|Load failed|Network request failed/i.test(msg)){
         var pb = (typeof getProxyBase==="function"?getProxyBase():"") || DEFAULT_PUBLIC_PROXY || "";
-        msg = pb ? ("Proxy hatası: "+pb.replace(/^https?:\/\//,"").slice(0,28)) : "CORS — https://fancy-scene-36a5.samsunsarraf55.workers.dev açın";
+        msg = pb ? ("Proxy hatası: "+pb.replace(/^https?:\/\//,"").slice(0,28)) : "CORS — Worker / Netlify kullanın";
       }
       if(e&&e.name==="AbortError") msg="Zaman aşımı";
-      if(/JSON değil|boş yanıt|HTML geldi|1027/i.test(msg)) msg = msg;
-      meta[key].error=msg; store[key]=store[key]||[];
-      console.warn("[RADAR]", key, msg, e);
+      meta[key]=meta[key]||{};
+      /* Ahlatcı: hata olsa bile cache/store koru */
+      if(key==="ahlatci" && store[key] && store[key].length){
+        meta[key].error = null;
+        meta[key].time = (meta[key].time||"") + " · önbellek";
+      } else {
+        meta[key].error=msg; store[key]=store[key]||[];
+      }
+      console.warn("[RADAR]", key, msg);
+      scheduleUI(false);
+    }).then(function(){
+      pending--;
+      if(pending<=0){
+        try { fetchTvXau(); } catch(e){}
+        scheduleUI(true);
+        try{
+          var pb2=(typeof getProxyBase==="function"?getProxyBase():"")||"";
+          var el=document.getElementById("proxyStatus");
+          if(el) el.textContent = pb2 ? ("Proxy: "+pb2.replace(/^https?:\/\//,"").slice(0,32)) : "Hazır";
+        }catch(_e){}
+        try{ var _br2=document.getElementById("btnRefresh"); if(_br2) _br2.disabled=false; }catch(e){}
+        busy=false;
+      }
     });
   });
-  Promise.allSettled(jobs).then(function(){
-    /* TradingView XAU referans (ticker) */
-    try { fetchTvXau(); } catch(e){ console.warn("fetchTvXau", e); }
-    /* Tüm menülerde anlık yansıt */
-    try { renderFirmGrid(); } catch(e){ console.warn("renderFirmGrid", e); }
-    try { renderTicker(); } catch(e){ console.warn("renderTicker", e); }
-    try { renderSummary(); } catch(e){ console.warn("renderSummary", e); }
-    try { renderFirmMenu(); } catch(e){ console.warn("renderFirmMenu", e); }
-    try { if(typeof renderCompare==="function") renderCompare(); } catch(e){ console.warn("renderCompare", e); }
-    try { if(typeof renderArb==="function") renderArb(); } catch(e){ console.warn("renderArb", e); }
-    try {
-      var ops = (typeof findArbitrage==="function") ? findArbitrage() : [];
-      if(typeof notifyArb==="function") notifyArb(ops);
-    } catch(e){}
-    /* Açık modalları canlı güncelle */
-    try {
-      var modal = document.getElementById("avgDetailModal");
-      var opid = window.__openSumPid || (modal && modal.getAttribute("data-open-pid"));
-      if(modal && (modal.classList.contains("open") || modal.style.display === "flex") && opid){
-        if(opid === "__more__"){
-          if(typeof openSumMoreModal==="function") openSumMoreModal();
-        } else if(typeof openSumDetail==="function") {
-          openSumDetail(opid, true);
-        }
-      }
-    } catch(e){}
-    try {
-      var hm = document.getElementById("histModal");
-      if(hm && hm.classList.contains("open") && window.__openHistFirm && typeof openHist==="function"){
-        openHist(window.__openHistFirm, window.__openHistName);
-      }
-    } catch(e){}
-    var anyOk=ORDER.some(function(k){return store[k]&&store[k].length;});
-    document.getElementById("dot").className="dot"+(anyOk?"":" err");
-    document.getElementById("clock").textContent=new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
-    document.getElementById("btnRefresh").disabled=false;
-    try{
-      var pb2=(typeof getProxyBase==="function"?getProxyBase():"")||"";
-      var el=document.getElementById("proxyStatus");
-      if(el) el.textContent = pb2 ? ("Proxy: "+pb2.replace(/^https?:\/\//,"").slice(0,32)) : (USE_PROXY?"Aynı origin /api":"file:// — Worker kullanın");
-    }catch(_e){}
-    busy=false;
-  });
+  /* Güvenlik: 20 sn sonra busy kilidini aç */
+  setTimeout(function(){
+    if(busy){
+      busy=false;
+      try{ var b=document.getElementById("btnRefresh"); if(b) b.disabled=false; }catch(e){}
+    }
+  }, 20000);
 }
+
 
 function startPoll(){
   if(pollTimer) clearInterval(pollTimer);
@@ -6783,10 +6936,14 @@ function openSettingsModal(){
   page.classList.add("active");
   window.__settingsSnapshot = snapshotSettings();
   window.__settingsDirty = false;
-  try{ if(typeof fillFirmOrderBox==="function") fillFirmOrderBox(); }catch(e){ console.warn(e); }
-  setTimeout(function(){ try{ fillFirmOrderBox(); }catch(e){} }, 50);
   bg.classList.add("open");
+  function _fillFO(){ try{ if(typeof fillFirmOrderBox==="function") fillFirmOrderBox(); }catch(e){ console.warn("fillFirmOrderBox", e); } }
+  _fillFO();
+  setTimeout(_fillFO, 30);
+  setTimeout(_fillFO, 150);
+  setTimeout(_fillFO, 400);
 }
+
 
 function closeSettingsModal(force){
   var bg = document.getElementById("settingsModalBg");
