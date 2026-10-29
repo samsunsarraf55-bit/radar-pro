@@ -168,10 +168,16 @@
     .modal h2{font-size:16px;margin-bottom:12px}
     .modal .close{float:right;cursor:pointer;font-size:18px;color:var(--muted);border:none;background:none}
 
-    .toast{position:fixed;bottom:20px;right:16px;left:16px;max-width:380px;margin-left:auto;background:var(--card);border:1px solid var(--green);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);z-index:110;transform:translateY(120%);opacity:0;transition:.35s}
+    .toast{position:fixed;bottom:20px;right:16px;left:16px;max-width:400px;margin-left:auto;background:var(--card);border:1px solid var(--green);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);z-index:110;transform:translateY(120%);opacity:0;transition:.35s}
     .toast.show{transform:translateY(0);opacity:1}
-    .toast h4{font-size:13px;color:var(--green);margin-bottom:4px}
-    .toast p{font-size:12px;color:var(--muted)}
+    .toast h4{font-size:13px;color:var(--green);margin-bottom:6px}
+    .toast p{font-size:12px;color:var(--muted);line-height:1.45}
+    .toast .arb-det{margin-top:6px;display:flex;flex-direction:column;gap:4px}
+    .toast .arb-line{display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:12px}
+    .toast .arb-line b{color:var(--text);font-weight:700}
+    .toast .arb-line .al{color:#16a34a}
+    .toast .arb-line .sat{color:#dc2626}
+    .toast .arb-meta{font-size:11px;color:var(--muted);margin-top:4px}
 
 
     .arb-hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:16px}
@@ -2932,7 +2938,7 @@
 var USE_PROXY = location.protocol === "http:" || location.protocol === "https:";
 var DOVIZ_ORDER = ["USD","EUR","GBP","CHF","AUD","CAD","SAR","JPY","RUB","GEL","AZN"];
 var ALTIN_ORDER = ["HAS","AYAR24","AYAR22","CEYREK","YARIM","TAM","ATA","RESAT","GUMUS"];
-var ORDER = ["gunes","solis","kaptan","ilkay","sar","altinkose","vizyon"];
+var ORDER = ["gunes","solis","kaptan","ilkay","sar","altinkose","vizyon","ahlatci"];
 var SOURCES = {
   gunes:     { name: "Güneş Kuyumculuk", proxy: "/api/gunes", direct: "https://api.guneskuyumculuk.net/temp-server/merkez/data" },
   kaptan:    { name: "Kaptan Döviz", proxy: "/api/kaptan", direct: "https://www.kaptandoviz.com/kurlar/api.php" },
@@ -2940,7 +2946,8 @@ var SOURCES = {
   sar:       { name: "SAR Döviz", proxy: "/api/sar", direct: "https://sardoviz.com/?ajax=1" },
   altinkose: { name: "Altınköşe", proxy: "/api/altinkose", direct: "https://www.altinkose.com.tr/api/storefront" },
   ilkay: { name: "İlkay Döviz", proxy: "/api/ilkay", direct: "http://ilkaydoviz.sdatam.com/" },
-  vizyon: { name: "Vizyon Kuyumcu", proxy: "/api/vizyon", direct: "https://fiyat.vizyonkuyumcu.com.tr/" }
+  vizyon: { name: "Vizyon Kuyumcu", proxy: "/api/vizyon", direct: "https://fiyat.vizyonkuyumcu.com.tr/" },
+  ahlatci: { name: "Ahlatcı Döviz", proxy: "/api/ahlatci", direct: "https://www.ahlatcidoviz.com.tr/kr.aspx", site: "https://www.ahlatcidoviz.com.tr", logo: "https://www.ahlatcidoviz.com.tr/img/icons/apple-touch-icon-152x152.png" }
 };
 
 var store = {}, prev = {}, meta = {}, firmTab = {};
@@ -3020,12 +3027,13 @@ var FIRM_LOGOS = {
   sar: "https://www.google.com/s2/favicons?domain=sardoviz.com&sz=64",
   altinkose: "https://www.google.com/s2/favicons?domain=altinkose.com.tr&sz=64",
   ilkay: "https://www.ilkaydoviz.com/images/favicon.png",
-  vizyon: "https://www.google.com/s2/favicons?domain=vizyonkuyumcu.com.tr&sz=64"
+  vizyon: "https://www.google.com/s2/favicons?domain=vizyonkuyumcu.com.tr&sz=64",
+  ahlatci: "https://www.ahlatcidoviz.com.tr/img/icons/apple-touch-icon-152x152.png"
 };
 function firmLogo(key){
   var src = (typeof FIRM_LOGOS !== "undefined") ? FIRM_LOGOS[key] : null;
   var name = (SOURCES[key] && SOURCES[key].name) || key;
-  var colors = {gunes:"#f59e0b",kaptan:"#3b82f6",solis:"#10b981",sar:"#ef4444",altinkose:"#8b5cf6",ilkay:"#06b6d4",vizyon:"#ec4899"};
+  var colors = {gunes:"#f59e0b",kaptan:"#3b82f6",solis:"#10b981",sar:"#ef4444",altinkose:"#8b5cf6",ilkay:"#06b6d4",vizyon:"#ec4899",ahlatci:"#0ea5e9"};
   var bg = colors[key] || "#64748b";
   var ch = (name.charAt(0) || "?").toUpperCase();
   var safe = String(name).replace(/"/g, "&quot;");
@@ -3224,6 +3232,26 @@ function fetchOnce(url, opts, ms){
   });
 }
 
+/** Ham metin (HTML/JSON string) — DOCTYPE reddi yok */
+function fetchOnceRaw(url, ms){
+  var ctrl = new AbortController();
+  var t = setTimeout(function(){ try{ ctrl.abort(); }catch(e){} }, ms||15000);
+  return fetch(url, { cache:"no-store", signal:ctrl.signal }).then(function(r){
+    clearTimeout(t);
+    if(!r.ok) throw new Error(r.status+" "+(r.statusText||""));
+    return r.text();
+  }).then(function(text){
+    clearTimeout(t);
+    if(!text || !String(text).trim()) throw new Error("boş yanıt");
+    return text;
+  }).catch(function(e){
+    clearTimeout(t);
+    var msg = (e && e.name==="AbortError") ? "zaman aşımı" : (e && e.message) || String(e);
+    if(/aborted/i.test(msg)) msg = "zaman aşımı / iptal";
+    throw new Error(msg);
+  });
+}
+
 /* PARSERS */
 function parseKaptan(d){
   meta.kaptan={time:d.son_guncelleme||d.sunucu_zaman};
@@ -3410,6 +3438,89 @@ function diffFlash(key, rows){
   var nm={}; (rows||[]).forEach(function(r){ nm[rowKey(r)]={alis:r.alis,satis:r.satis}; });
   prev[key]=nm;
   return flashes;
+}
+
+
+function parseAhlatci(d){
+  /* Çalışan Ahlatcı uygulamasındaki parse mantığı */
+  var text = "";
+  if(typeof d === "string") text = d;
+  else if(d && typeof d === "object"){
+    if(Array.isArray(d)){
+      /* Netlify JSON [{SMB,Al,St}] */
+      var rows0 = [], seen0 = {};
+      d.forEach(function(e){
+        if(!e) return;
+        var kod = String(e.SMB||e.s||e.kod||"").trim().toUpperCase();
+        if(!kod || seen0[kod]) return;
+        if(/EURUSD|XAUUSD|SEPET|XPD|XPT/i.test(kod)) return;
+        seen0[kod]=1;
+        var alis = parseFloat(String(e.Al!=null?e.Al:(e.al!=null?e.al:"")).replace(",","."));
+        var satis = parseFloat(String(e.St!=null?e.St:(e.st!=null?e.st:"")).replace(",","."));
+        if(isNaN(alis)&&isNaN(satis)) return;
+        var kind="doviz", name=kod;
+        if(kod==="XAU"){ kind="altin"; name="HAS"; }
+        else if(kod==="XAG"){ kind="altin"; name="Gümüş"; }
+        rows0.push({kod:kod,name:name,alis:isNaN(alis)?null:alis,satis:isNaN(satis)?null:satis,kind:kind});
+      });
+      if(rows0.length){
+        try{ meta.ahlatci={time:new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}; }catch(e){}
+        return rows0;
+      }
+    }
+    if(d.html) text = String(d.html);
+    else if(d.contents) text = String(d.contents);
+    else try{ text = JSON.stringify(d); }catch(e){ text=""; }
+  }
+  if(!text) return [];
+
+  var data = [];
+  try {
+    if(typeof DOMParser !== "undefined"){
+      var doc = new DOMParser().parseFromString(text, "text/html");
+      doc.querySelectorAll("table tbody tr, table tr").forEach(function(tr){
+        var th = tr.querySelector("th");
+        var td = tr.querySelectorAll("td");
+        if(!th || td.length < 2) return;
+        var s = (th.textContent||"").trim();
+        var al = (td[0].textContent||"").trim();
+        var st = (td[1].textContent||"").trim();
+        if(s && al && !isNaN(parseFloat(al))) data.push({ s:s, al:al, st:st });
+      });
+    }
+  } catch(e){}
+
+  if(!data.length){
+    var re = /scope\s*=\s*"?row"?\s*>\s*([A-Z]+)\s*<\/th>\s*<td>\s*([0-9.]+)\s*<\/td>\s*<td>\s*([0-9.]+)/gi;
+    var m;
+    while((m = re.exec(text))) data.push({ s:m[1], al:m[2], st:m[3] });
+  }
+  if(!data.length){
+    var re2 = /<tr[^>]*>\s*<th[^>]*>\s*([A-Za-z]{2,8})\s*<\/th>\s*<td[^>]*>\s*([0-9.,]+)\s*<\/td>\s*<td[^>]*>\s*([0-9.,]+)\s*<\/td>/gi;
+    var m2;
+    while((m2 = re2.exec(text))) data.push({ s:m2[1], al:m2[2], st:m2[3] });
+  }
+
+  var rows = [], seen = {};
+  data.forEach(function(r){
+    var kod = String(r.s||"").trim().toUpperCase();
+    if(!kod || seen[kod]) return;
+    if(/EURUSD|XAUUSD|SEPET|XPD|XPT/i.test(kod)) return;
+    seen[kod]=1;
+    var alis = parseFloat(String(r.al).replace(/\s/g,"").replace(",","."));
+    var satis = parseFloat(String(r.st).replace(/\s/g,"").replace(",","."));
+    if(isNaN(alis)&&isNaN(satis)) return;
+    var kind="doviz", name=kod;
+    if(kod==="XAU"){ kind="altin"; name="HAS"; }
+    else if(kod==="XAG"){ kind="altin"; name="Gümüş"; }
+    rows.push({kod:kod,name:name,alis:isNaN(alis)?null:alis,satis:isNaN(satis)?null:satis,kind:kind});
+  });
+  try {
+    if(rows.length){
+      meta.ahlatci = { time: new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit",second:"2-digit"}) };
+    }
+  } catch(e){}
+  return rows;
 }
 
 /* MATCHERS */
@@ -3943,19 +4054,20 @@ function fillFirmOrderBox(){
 
 function bindFsDrag(box){
   if(!box) return;
-  if(box.dataset.dragBound) return;
-  box.dataset.dragBound = "1";
+  /* her açılışta yeniden bağla */
   var dragEl = null;
+  function mark(){ window.__firmSetDirty = true; }
   box.addEventListener("dragstart", function(ev){
     var t = ev.target.closest(".fs-item");
     if(!t) return;
     dragEl = t;
     t.classList.add("dragging");
-    ev.dataTransfer.effectAllowed = "move";
+    try{ ev.dataTransfer.effectAllowed = "move"; }catch(e){}
   });
   box.addEventListener("dragend", function(ev){
     var t = ev.target.closest(".fs-item");
     if(t) t.classList.remove("dragging");
+    if(dragEl) mark();
     dragEl = null;
   });
   box.addEventListener("dragover", function(ev){
@@ -3966,7 +4078,33 @@ function bindFsDrag(box){
     var before = (ev.clientY - rect.top) < rect.height/2;
     if(before) box.insertBefore(dragEl, t);
     else box.insertBefore(dragEl, t.nextSibling);
+    mark();
   });
+  /* Mobil dokunma ile sırala */
+  if(!box.dataset.touchFs){
+    box.dataset.touchFs = "1";
+    var touchEl = null, startY = 0;
+    box.addEventListener("touchstart", function(ev){
+      var t = ev.target.closest(".fs-item");
+      if(!t) return;
+      touchEl = t;
+      startY = ev.touches[0].clientY;
+    }, {passive:true});
+    box.addEventListener("touchmove", function(ev){
+      if(!touchEl) return;
+      var y = ev.touches[0].clientY;
+      var over = document.elementFromPoint(ev.touches[0].clientX, y);
+      var t = over && over.closest ? over.closest(".fs-item") : null;
+      if(t && t!==touchEl && box.contains(t)){
+        var rect = t.getBoundingClientRect();
+        if(y < rect.top + rect.height/2) box.insertBefore(touchEl, t);
+        else box.insertBefore(touchEl, t.nextSibling);
+        mark();
+      }
+      try{ ev.preventDefault(); }catch(e){}
+    }, {passive:false});
+    box.addEventListener("touchend", function(){ touchEl = null; });
+  }
 }
 
 function openFirmSettings(key){
@@ -3974,6 +4112,7 @@ function openFirmSettings(key){
   var p = getFirmPref(key);
   var modal = document.getElementById("firmSetModal");
   if(!modal) return;
+  modal.dataset.firmKey = key;
   document.getElementById("firmSetTitle").textContent = firmDisplayName(key) + " — sütun ayarları";
   document.getElementById("fsFirmName").value = p.firmName || (SOURCES[key] && SOURCES[key].name) || key;
   var sortEl = document.getElementById("fsSort");
@@ -4022,78 +4161,209 @@ function openFirmSettings(key){
     box.appendChild(row);
   });
   bindFsDrag(box);
+  window.__firmSetDirty = false;
+  try { window.__firmSetSnapshot = JSON.stringify(getFirmPref(key)); } catch(e){ window.__firmSetSnapshot = null; }
   modal.classList.add("open");
-}
-
-function closeFirmSettings(){
-  var modal = document.getElementById("firmSetModal");
-  if(modal) modal.classList.remove("open");
-  _firmSetKey = null;
-}
-
-function saveFirmSettingsFromUi(){
-  if(!_firmSetKey) return;
-  var key = _firmSetKey;
-  var p = getFirmPref(key);
-  p.firmName = document.getElementById("fsFirmName").value.trim();
-  var sortEl = document.getElementById("fsSort");
-  p.sort = sortEl ? sortEl.value : "default";
-  p.renames = {};
-  p.hidden = [];
-  p.order = [];
-  p.extra = [];
-  var box = document.getElementById("fsProductList");
-  box.querySelectorAll(".fs-item").forEach(function(item){
-    var id = item.dataset.id || (item.querySelector("[data-id]") && item.querySelector("[data-id]").getAttribute("data-id"));
-    if(!id) return;
-    p.order.push(id);
-    var cb = item.querySelector("input[type=checkbox]");
-    var ren = item.querySelector("input[data-rename]");
-    if(cb && !cb.checked) p.hidden.push(id);
-    if(ren && ren.value.trim()) p.renames[id] = ren.value.trim();
-  });
-  firmColPrefs[key] = p;
-  saveFirmColPrefs();
-  closeFirmSettings();
+  try { bindFirmSettingsUi(); } catch(e){ console.warn(e); }
+  /* Her açılışta Kaydet butonunu doğrudan bağla */
   try {
-    var g=document.getElementById("firmGrid");
-    if(g){ g.innerHTML=""; delete g.dataset.filter; }
-    renderFirmGrid();
-  } catch(e){}
+    var btn = document.getElementById("fsSave");
+    if(btn){
+      btn.onclick = function(ev){
+        if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+        saveFirmSettingsFromUi();
+      };
+    }
+    var btnC = document.getElementById("fsCancel");
+    if(btnC) btnC.onclick = function(ev){ if(ev){ev.preventDefault();} closeFirmSettings(false); };
+    var btnX = document.getElementById("firmSetClose");
+    if(btnX) btnX.onclick = function(ev){ if(ev){ev.preventDefault();} closeFirmSettings(false); };
+  } catch(e){ console.warn("wire save", e); }
 }
+
+window.__firmSetDirty = false;
+window.__firmSetSnapshot = null;
+
+function _firmSetMarkDirty(){ window.__firmSetDirty = true; }
+
+function closeFirmSettings(force){
+  var modal = document.getElementById("firmSetModal");
+  if(!modal || !modal.classList.contains("open")){
+    _firmSetKey = null;
+    window.__firmSetDirty = false;
+    return;
+  }
+  if(!force && window.__firmSetDirty){
+    var ans = confirm("Değişiklikler kaydedilsin mi?");
+    if(ans){
+      try { saveFirmSettingsFromUi(true); return; } catch(e){ console.warn(e); }
+    } else {
+      /* kaydetme — kapat */
+      window.__firmSetDirty = false;
+    }
+  }
+  modal.classList.remove("open");
+  _firmSetKey = null;
+  window.__firmSetDirty = false;
+  window.__firmSetSnapshot = null;
+}
+
+function saveFirmSettingsFromUi(fromConfirm){
+  try {
+    var key = _firmSetKey;
+    if(!key){
+      /* id üzerinden son açık firmayı dene */
+      var modal = document.getElementById("firmSetModal");
+      if(modal && modal.dataset.firmKey) key = modal.dataset.firmKey;
+    }
+    if(!key){ alert("Kayıt için firma seçili değil"); return false; }
+
+    var p = {
+      firmName: "",
+      sort: "default",
+      renames: {},
+      hidden: [],
+      order: [],
+      extra: (getFirmPref(key).extra || [])
+    };
+    var nameEl = document.getElementById("fsFirmName");
+    if(nameEl) p.firmName = nameEl.value.trim();
+    var sortEl = document.getElementById("fsSort");
+    if(sortEl) p.sort = sortEl.value || "default";
+
+    var box = document.getElementById("fsProductList");
+    if(box){
+      Array.prototype.forEach.call(box.querySelectorAll(".fs-item"), function(item){
+        var id = item.getAttribute("data-id") || item.dataset.id;
+        if(!id) return;
+        id = String(id);
+        p.order.push(id);
+        var cb = item.querySelector('input[type="checkbox"]');
+        var ren = item.querySelector("input[data-rename]");
+        if(cb && !cb.checked) p.hidden.push(id);
+        if(ren){
+          var v = (ren.value||"").trim();
+          if(v) p.renames[id] = v;
+        }
+      });
+    }
+
+    firmColPrefs[key] = p;
+    try { localStorage.setItem("radar_firm_col_prefs", JSON.stringify(firmColPrefs)); } catch(e){}
+    window.__firmSetDirty = false;
+    _firmSetKey = null;
+
+    var modal = document.getElementById("firmSetModal");
+    if(modal){
+      modal.classList.remove("open");
+      delete modal.dataset.firmKey;
+    }
+
+    try {
+      var g = document.getElementById("firmGrid");
+      if(g){ g.innerHTML = ""; delete g.dataset.filter; delete g.dataset.q; }
+      if(typeof renderFirmGrid === "function") renderFirmGrid();
+    } catch(e){ console.warn(e); }
+    return true;
+  } catch(e){
+    console.error("saveFirmSettings", e);
+    alert("Kayıt hatası: "+(e && e.message ? e.message : e));
+    return false;
+  }
+}
+
 function bindFirmSettingsUi(){
   var modal = document.getElementById("firmSetModal");
-  if(!modal || modal.dataset.bound) return;
+  if(!modal) return;
+  if(modal.dataset.bound) return;
   modal.dataset.bound = "1";
-  var closeBtn = document.getElementById("firmSetClose");
-  if(closeBtn) closeBtn.onclick = closeFirmSettings;
-  modal.addEventListener("click", function(ev){ if(ev.target === modal) closeFirmSettings(); });
-  var cancelBtn = document.getElementById("fsCancel");
-  if(cancelBtn) cancelBtn.onclick = closeFirmSettings;
-  document.getElementById("fsSave").onclick = saveFirmSettingsFromUi;
-  document.getElementById("fsReset").onclick = function(){
-    if(!_firmSetKey) return;
-    delete firmColPrefs[_firmSetKey];
-    saveFirmColPrefs();
-    closeFirmSettings();
-    try {
-      var g=document.getElementById("firmGrid");
-      if(g){ g.innerHTML=""; delete g.dataset.filter; }
-      renderFirmGrid();
-    } catch(e){}
-  };
-  /* fsAddBtn removed */
-  document.getElementById("fsProductList").addEventListener("click", function(ev){
+
+  /* Kaydet / Sıfırla / İptal — delegasyon (güvenilir) */
+  modal.addEventListener("click", function(ev){
     var t = ev.target;
-    if(t && t.getAttribute && t.getAttribute("data-rm-extra")!=null){
-      var idx = parseInt(t.getAttribute("data-rm-extra"),10);
+    if(!t) return;
+    /* backdrop */
+    if(t === modal){
+      ev.preventDefault();
+      closeFirmSettings(false);
+      return;
+    }
+    if(t.id === "fsSave" || (t.closest && t.closest("#fsSave"))){
+      ev.preventDefault();
+      ev.stopPropagation();
+      window.__firmSetDirty = true; /* kaydet zorla uygula */
+      saveFirmSettingsFromUi();
+      return;
+    }
+    if(t.id === "fsCancel" || (t.closest && t.closest("#fsCancel"))){
+      ev.preventDefault();
+      closeFirmSettings(false);
+      return;
+    }
+    if(t.id === "firmSetClose" || (t.closest && t.closest("#firmSetClose"))){
+      ev.preventDefault();
+      closeFirmSettings(false);
+      return;
+    }
+    if(t.id === "fsReset" || (t.closest && t.closest("#fsReset"))){
+      ev.preventDefault();
+      if(!_firmSetKey) return;
+      if(!confirm("Bu firmanın sütun ayarları sıfırlansın mı?")) return;
+      delete firmColPrefs[_firmSetKey];
+      if(typeof saveFirmColPrefs==="function") saveFirmColPrefs();
+      window.__firmSetDirty = false;
+      var m = document.getElementById("firmSetModal");
+      if(m) m.classList.remove("open");
+      var k = _firmSetKey; _firmSetKey = null;
+      try {
+        var g=document.getElementById("firmGrid");
+        if(g){ g.innerHTML=""; delete g.dataset.filter; }
+        if(typeof renderFirmGrid==="function") renderFirmGrid();
+      } catch(e){}
+      return;
+    }
+    var rm = t.getAttribute && t.getAttribute("data-rm-extra");
+    if(rm!=null && _firmSetKey){
+      var idx = parseInt(rm,10);
       var p = getFirmPref(_firmSetKey);
       if(p.extra) p.extra.splice(idx,1);
       firmColPrefs[_firmSetKey] = p;
+      window.__firmSetDirty = true;
       openFirmSettings(_firmSetKey);
     }
   });
+
+  /* input değişince dirty */
+  modal.addEventListener("input", function(){ window.__firmSetDirty = true; });
+  modal.addEventListener("change", function(){ window.__firmSetDirty = true; });
+
+  /* ESC */
+  document.addEventListener("keydown", function(ev){
+    if(ev.key !== "Escape" && ev.keyCode !== 27) return;
+    var m = document.getElementById("firmSetModal");
+    if(!m || !m.classList.contains("open")) return;
+    ev.preventDefault();
+    closeFirmSettings(false);
+  });
 }
+
+/* Global Kaydet yedek — capture */
+(function(){
+  if(window.__fsGlobalSave) return;
+  window.__fsGlobalSave = 1;
+  document.addEventListener("click", function(ev){
+    var t = ev.target;
+    if(!t) return;
+    var btn = (t.id==="fsSave") ? t : (t.closest && t.closest("#fsSave"));
+    if(!btn) return;
+    var modal = document.getElementById("firmSetModal");
+    if(!modal || !modal.classList.contains("open")) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    try{ saveFirmSettingsFromUi(); }catch(e){ console.error(e); }
+  }, true);
+})();
+
 function onFirmLogoClick(key){
   /* çift tık ile açılır — bindFirmLogoClicks dblclick kullanır */
   bindFirmSettingsUi();
@@ -5007,16 +5277,42 @@ function notifyArb(ops){
   lastNotified[top.id]=now;
   try{ if(typeof playBeep==="function") playBeep(); }catch(e){}
   /* sound: playBeep */
+  var buyPx = top.buyFrom && top.buyFrom.satis != null ? top.buyFrom.satis : null;
+  var sellPx = top.sellTo && top.sellTo.alis != null ? top.sellTo.alis : null;
+  var isFx = top.kind === "doviz";
+  function _af(n){
+    if(n==null || isNaN(n)) return "—";
+    if(isFx && typeof fmtFx4 === "function") return fmtFx4(n);
+    if(isFx && typeof fmtFx === "function") return fmtFx(n);
+    if(typeof fmtGold === "function") return fmtGold(n);
+    if(typeof fmt === "function") return fmt(n);
+    return Number(n).toLocaleString("tr-TR",{maximumFractionDigits:4});
+  }
+  var buyName = (top.buyFrom && (top.buyFrom.name || top.buyFrom.src)) || "—";
+  var sellName = (top.sellTo && (top.sellTo.name || top.sellTo.src)) || "—";
+  var spreadTxt = (top.spread != null && !isNaN(top.spread)) ? _af(Math.abs(top.spread)) : "—";
+
   var toast=document.getElementById("toast");
   if(toast){
     var tb=document.getElementById("toastBody");
-    if(tb) tb.textContent=top.label+": %"+top.pct.toFixed(2)+" — AL "+top.buyFrom.name+" → SAT "+top.sellTo.name;
+    if(tb){
+      tb.innerHTML =
+        "<div><b>"+top.label+"</b> · kâr %"+Number(top.pct).toFixed(2)+"</div>"+
+        '<div class="arb-det">'+
+          '<div class="arb-line"><span class="al">AL · '+buyName+'</span><b class="al">'+_af(buyPx)+'</b></div>'+
+          '<div class="arb-line"><span class="sat">SAT · '+sellName+'</span><b class="sat">'+_af(sellPx)+'</b></div>'+
+        "</div>"+
+        '<div class="arb-meta">Makas '+spreadTxt+" ₺ · "+buyName+" → "+sellName+"</div>";
+    }
     toast.classList.add("show");
-    clearTimeout(notifyArb._t); notifyArb._t=setTimeout(function(){toast.classList.remove("show");},5000);
+    clearTimeout(notifyArb._t); notifyArb._t=setTimeout(function(){toast.classList.remove("show");},7000);
   }
   try {
     if(typeof settings!=="undefined" && settings.notif===false) return;
-    var body = top.label+" %"+Number(top.pct).toFixed(2)+" · "+top.buyFrom.name+" → "+top.sellTo.name;
+    var body = top.label+" %"+Number(top.pct).toFixed(2)+
+      " · AL "+buyName+" "+_af(buyPx)+
+      " → SAT "+sellName+" "+_af(sellPx)+
+      " (makas "+spreadTxt+")";
     if(typeof Notification!=="undefined"){
       if(Notification.permission==="granted"){
         new Notification("RADAR AKTİF FIRSAT", { body: body, tag: "arb-"+top.id });
@@ -5462,6 +5758,70 @@ function fetchSource(key){
       return fetchOnce("https://api.allorigins.win/raw?url=" + encodeURIComponent(SOURCES.sar.direct), null, 12000);
     });
   }
+  if(key === "ahlatci"){
+    /* Kaynak: https://www.ahlatcidoviz.com.tr/kr.aspx
+       Diğer uygulamadaki çalışan yöntem: corx → allorigins (404 /api yok) */
+    tries = [];
+    var ahlUrl = "https://www.ahlatcidoviz.com.tr/kr.aspx";
+    var ts = Date.now();
+    function ahlValidate(text){
+      if(text == null) throw new Error("boş");
+      if(typeof text === "object"){
+        if(Array.isArray(text) && text.length) return text;
+        if(text.contents) return String(text.contents);
+        throw new Error("geçersiz");
+      }
+      var s = String(text);
+      if(!s.trim()) throw new Error("boş yanıt");
+      if(/\b404\b/.test(s) && s.length < 80) throw new Error("404");
+      if(s.indexOf("USD")<0 && s.indexOf("XAU")<0 && s.indexOf("SMB")<0) throw new Error("fiyat yok");
+      return s;
+    }
+    function ahlFetch(url, ms){
+      var ctrl = new AbortController();
+      var to = setTimeout(function(){ try{ ctrl.abort(); }catch(e){} }, ms||14000);
+      return fetch(url, { cache:"no-store", signal:ctrl.signal, mode:"cors" })
+        .then(function(r){
+          clearTimeout(to);
+          if(r.status === 404) throw new Error("404");
+          if(!r.ok) throw new Error(r.status+" "+(r.statusText||""));
+          return r.text();
+        })
+        .then(function(t){ clearTimeout(to); return ahlValidate(t); })
+        .catch(function(e){
+          clearTimeout(to);
+          var msg = (e && e.name==="AbortError") ? "zaman aşımı" : ((e && e.message)||String(e));
+          throw new Error(msg);
+        });
+    }
+    tries.push(function(){
+      return ahlFetch("https://corx.envx.cn/fetch?url="+encodeURIComponent(ahlUrl)+"&corx-key=corx_wurhkSx9Z5GkXBs85bu8iyqJ-963qATW&t="+ts, 14000);
+    });
+    tries.push(function(){
+      return ahlFetch("https://api.allorigins.win/raw?url="+encodeURIComponent(ahlUrl)+"&t="+ts, 16000);
+    });
+    tries.push(function(){
+      return ahlFetch("https://api.allorigins.win/get?url="+encodeURIComponent(ahlUrl)+"&t="+ts, 16000)
+        .then(function(t){
+          try { var j = JSON.parse(t); if(j && j.contents) return ahlValidate(j.contents); } catch(e){}
+          return ahlValidate(t);
+        });
+    });
+    tries.push(function(){
+      return ahlFetch("https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(ahlUrl), 16000);
+    });
+    /* Netlify function — yalnızca netlify.app */
+    try {
+      var host = (location.hostname||"");
+      if(/\.netlify\.app$/i.test(host)){
+        tries.push(function(){
+          return ahlFetch("/api/ahlatci", 12000).then(function(t){
+            try { return JSON.parse(t); } catch(e){ return ahlValidate(t); }
+          });
+        });
+      }
+    } catch(e){}
+  }
 
   // 4) İlkay HTML allorigins
   if(key === "ilkay"){
@@ -5475,7 +5835,7 @@ function fetchSource(key){
   }
 
   // 5) Diğer firmalar direkt
-  if(key !== "altinkose" && key !== "vizyon" && key !== "sar" && key !== "ilkay"){
+  if(key !== "altinkose" && key !== "vizyon" && key !== "sar" && key !== "ilkay" && key !== "ahlatci"){
     tries.push(function(){ return fetchOnce(SOURCES[key].direct, null, 8000); });
   }
 
@@ -5897,6 +6257,10 @@ function loadAll(){
       else if(key==="sar") rows=parseSar(d);
       else if(key==="ilkay") rows=parseIlkay(d);
       else if(key==="vizyon") rows=parseVizyon(d);
+      else if(key==="ahlatci"){
+        rows=parseAhlatci(d);
+        if(!rows || !rows.length) throw new Error("Ahlatcı parse boş");
+      }
       else rows=[];
       store[key]=rows; delete meta[key].error;
       recordHistory(key, rows);
