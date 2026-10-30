@@ -1,0 +1,35 @@
+name: Altinkose kur yedek
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kur cek
+        run: |
+          mkdir -p data
+          curl -fsS -m 25 -X POST 'https://www.altinkose.com.tr/api/storefront' \
+            -H 'Content-Type: application/json' \
+            -H 'Accept: application/json' \
+            -H 'Origin: https://www.altinkose.com.tr' \
+            -H 'Referer: https://www.altinkose.com.tr/canli-altin-fiyatlari' \
+            -H 'X-Domain-Key: altinkose' \
+            -d '{"islem":"storefront_kurlar","canli":"1","domain_key":"altinkose","tum":"1"}' \
+            -o /tmp/ak-full.json
+          python3 -c 'import json;d=json.load(open("/tmp/ak-full.json"));rows=(d.get("veri") or {}).get("kurlar") or [];assert rows,"kur yok";json.dump({"durum":True,"mesaj":d.get("mesaj") or "kur","veri":{"kurlar":rows}}, open("data/altinkose.json","w"), ensure_ascii=False, separators=(",",":"))'
+      - name: Kaydet
+        run: |
+          git config user.name "radar-kur"
+          git config user.email "radar-kur@users.noreply.github.com"
+          git add data/altinkose.json
+          if git diff --cached --quiet; then
+            echo "degisiklik yok"
+            exit 0
+          fi
+          git commit -m "altinkose kur yedek"
+          git push
