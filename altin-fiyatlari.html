@@ -2772,6 +2772,14 @@
       font-size:13px!important;
       font-weight:700!important;
       line-height:1.3!important;
+      flex:1 1 auto!important;
+    }
+    #firmOrderBox .fo-move{display:flex!important;gap:6px!important;margin-left:auto!important;flex:0 0 auto!important}
+    #firmOrderBox .fo-up, #firmOrderBox .fo-down{
+      display:inline-flex!important;align-items:center!important;justify-content:center!important;
+      width:36px!important;height:32px!important;border-radius:8px!important;
+      border:1px solid var(--border)!important;background:var(--card)!important;
+      color:var(--text)!important;font-size:16px!important;font-weight:700!important;cursor:pointer!important;
     }
 
   
@@ -2917,14 +2925,14 @@
           <h3>Genel Ayarlar · Firma sütun sırası</h3>
           <p class="set-desc">Ana sayfadaki firma sütunlarının sırası. Oklarla yukarı-aşağı alın veya kartı sürükleyin, sonra kaydedin.</p>
           <div id="firmOrderBox" class="firm-order-cards">
-            <div class="fo-card" data-firm="gunes" draggable="true"><span class="fo-name">Güneş Kuyumculuk</span></div>
-            <div class="fo-card" data-firm="solis" draggable="true"><span class="fo-name">Solis Döviz</span></div>
-            <div class="fo-card" data-firm="kaptan" draggable="true"><span class="fo-name">Kaptan Döviz</span></div>
-            <div class="fo-card" data-firm="ilkay" draggable="true"><span class="fo-name">İlkay Döviz</span></div>
-            <div class="fo-card" data-firm="sar" draggable="true"><span class="fo-name">SAR Döviz</span></div>
-            <div class="fo-card" data-firm="altinkose" draggable="true"><span class="fo-name">Altınköşe</span></div>
-            <div class="fo-card" data-firm="vizyon" draggable="true"><span class="fo-name">Vizyon Kuyumcu</span></div>
-            <div class="fo-card" data-firm="ahlatci" draggable="true"><span class="fo-name">Ahlatcı Döviz</span></div>
+            <div class="fo-card" data-firm="gunes"><span class="fo-name">Güneş Kuyumculuk</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
+            <div class="fo-card" data-firm="solis"><span class="fo-name">Solis Döviz</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
+            <div class="fo-card" data-firm="kaptan"><span class="fo-name">Kaptan Döviz</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
+            <div class="fo-card" data-firm="ilkay"><span class="fo-name">İlkay Döviz</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
+            <div class="fo-card" data-firm="sar"><span class="fo-name">SAR Döviz</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
+            <div class="fo-card" data-firm="altinkose"><span class="fo-name">Altınköşe</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
+            <div class="fo-card" data-firm="vizyon"><span class="fo-name">Vizyon Kuyumcu</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
+            <div class="fo-card" data-firm="ahlatci"><span class="fo-name">Ahlatcı Döviz</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
           </div>
           <div class="set-actions" style="margin-top:12px">
             <button type="button" class="btn-primary" id="firmOrderSave">Sırayı kaydet</button>
@@ -4644,10 +4652,9 @@ function fillFirmOrderBox(){
     row.draggable = true;
     row.dataset.firm = k;
     row.setAttribute("style",
-      "display:flex!important;flex-direction:column;align-items:center;gap:6px;"+
-      "padding:12px 14px;border:1px solid var(--border,#e2e8f0);border-radius:12px;"+
-      "background:var(--card,#fff);min-width:96px;cursor:grab;user-select:none;"+
-      "box-shadow:0 1px 3px rgba(0,0,0,.06)"
+      "display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;"+
+      "width:100%!important;padding:8px 10px!important;border:1px solid var(--border,#e2e8f0);border-radius:12px!important;"+
+      "background:var(--bg,#0f172a)!important;color:var(--text,#e2e8f0)!important;box-sizing:border-box!important"
     );
     var nm = (typeof SOURCES !== "undefined" && SOURCES[k] && SOURCES[k].name) ? SOURCES[k].name : k;
     var logo = "";
@@ -4729,6 +4736,81 @@ function fillFirmOrderBox(){
 }
 
 
+function applyFirmOrderLive(){
+  var arr = [];
+  document.querySelectorAll("#firmOrderBox .fo-card[data-firm]").forEach(function(it){
+    if(it.dataset.firm) arr.push(it.dataset.firm);
+  });
+  if(!arr.length || typeof saveFirmOrderPref!=="function") return arr;
+  saveFirmOrderPref(arr);
+  var grid = document.getElementById("firmGrid");
+  if(grid){
+    arr.forEach(function(k){
+      var col = document.getElementById("col-"+k);
+      if(col) grid.appendChild(col);
+    });
+  }
+  try{ if(typeof renderCompare==="function") renderCompare(); }catch(e){}
+  try{ if(typeof markSettingsDirty==="function") markSettingsDirty(); }catch(e){}
+  return arr;
+}
+document.addEventListener("click", function(ev){
+  var t = ev.target && ev.target.closest ? ev.target.closest("#firmOrderBox .fo-up, #firmOrderBox .fo-down, #firmOrderSave, #firmOrderReset") : null;
+  if(!t) return;
+  var box = document.getElementById("firmOrderBox");
+  if(t.id === "firmOrderSave"){
+    ev.preventDefault();
+    ev.stopPropagation();
+    var saved = applyFirmOrderLive();
+    try{
+      var toastEl = document.getElementById("toast");
+      var toastBody = document.getElementById("toastBody");
+      if(toastEl && toastBody){
+        var h = toastEl.querySelector("h4");
+        if(h) h.textContent = "Firma sırası";
+        toastBody.textContent = "Kaydedildi ("+(saved?saved.length:0)+" firma)";
+        toastEl.classList.add("show");
+        setTimeout(function(){ toastEl.classList.remove("show"); }, 1400);
+      }
+    }catch(e){}
+    return;
+  }
+  if(t.id === "firmOrderReset"){
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(typeof saveFirmOrderPref==="function") saveFirmOrderPref([]);
+    if(typeof fillFirmOrderBox==="function") fillFirmOrderBox();
+    try{
+      var g = document.getElementById("firmGrid");
+      if(g){ g.innerHTML = ""; delete g.dataset.filter; delete g.dataset.order; }
+      if(typeof renderFirmGrid==="function") renderFirmGrid();
+    }catch(e){}
+    return;
+  }
+  if(!box) return;
+  var card = t.closest(".fo-card");
+  if(!card || !box.contains(card)) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  if(t.classList.contains("fo-up") && card.previousElementSibling) box.insertBefore(card, card.previousElementSibling);
+  if(t.classList.contains("fo-down") && card.nextElementSibling) box.insertBefore(card.nextElementSibling, card);
+  var n = 1;
+  box.querySelectorAll(".fo-idx").forEach(function(el){ el.textContent = "#"+(n++); });
+  applyFirmOrderLive();
+}, true);
+document.addEventListener("change", function(ev){
+  var inp = ev.target;
+  if(!inp || !inp.getAttribute || !inp.getAttribute("data-avg-firm")) return;
+  var box = document.getElementById("avgFirmBox");
+  if(!box || !box.contains(inp)) return;
+  var arr = [];
+  box.querySelectorAll("input[data-avg-firm]").forEach(function(el){
+    var lab = el.closest(".avg-firm");
+    if(lab) lab.classList.toggle("on", el.checked);
+    if(el.checked) arr.push(el.getAttribute("data-avg-firm"));
+  });
+  if(typeof saveAvgFirms==="function") saveAvgFirms(arr);
+}, true);
 function firmInAvg(key){
   var sel = settings && settings.avgFirms;
   if(sel == null) return true;
@@ -5152,10 +5234,18 @@ function renderFirmGrid(){
   if(!grid) return;
   try{ document.body.classList.toggle("hide-makas", settings && settings.showMakas===false); }catch(e){}
   var FIRM_SEQ = (typeof orderedFirms==="function") ? orderedFirms() : ORDER;
-
-  var needFull = !grid.querySelector(".firm-col") || grid.dataset.filter !== (homeFilter||"all") || grid.dataset.q !== (searchQ||"");
+  var seqKey = FIRM_SEQ.join(",");
+  var needFull = !grid.querySelector(".firm-col") || grid.dataset.filter !== (homeFilter||"all") || grid.dataset.q !== (searchQ||"") || grid.dataset.order !== seqKey && FIRM_SEQ.some(function(k){ return !document.getElementById("col-"+k); });
   grid.dataset.filter = homeFilter||"all";
   grid.dataset.q = searchQ||"";
+  grid.dataset.order = seqKey;
+
+  if(!needFull){
+    FIRM_SEQ.forEach(function(key){
+      var col = document.getElementById("col-"+key);
+      if(col) grid.appendChild(col);
+    });
+  }
 
   if(needFull){
     var html="";
