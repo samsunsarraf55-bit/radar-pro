@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
   <title>RADAR PRO — Canlı Piyasa Terminali</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -2930,6 +2932,7 @@
             <div class="fo-card" data-firm="kaptan"><span class="fo-name">Kaptan Döviz</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
             <div class="fo-card" data-firm="ilkay"><span class="fo-name">İlkay Döviz</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
             <div class="fo-card" data-firm="sar"><span class="fo-name">SAR Döviz</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
+            <div class="fo-card" data-firm="saraltin"><span class="fo-name">SAR Altın</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
             <div class="fo-card" data-firm="altinkose"><span class="fo-name">Altınköşe</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
             <div class="fo-card" data-firm="vizyon"><span class="fo-name">Vizyon Kuyumcu</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
             <div class="fo-card" data-firm="ahlatci"><span class="fo-name">Ahlatcı Döviz</span><span class="fo-move"><button type="button" class="fo-up" title="Yukarı">↑</button><button type="button" class="fo-down" title="Aşağı">↓</button></span></div>
@@ -2949,6 +2952,7 @@
             <label class="avg-firm on"><input type="checkbox" data-avg-firm="kaptan" checked><span class="avg-firm-name">Kaptan Döviz</span></label>
             <label class="avg-firm on"><input type="checkbox" data-avg-firm="ilkay" checked><span class="avg-firm-name">İlkay Döviz</span></label>
             <label class="avg-firm on"><input type="checkbox" data-avg-firm="sar" checked><span class="avg-firm-name">SAR Döviz</span></label>
+            <label class="avg-firm on"><input type="checkbox" data-avg-firm="saraltin" checked><span class="avg-firm-name">SAR Altın</span></label>
             <label class="avg-firm on"><input type="checkbox" data-avg-firm="altinkose" checked><span class="avg-firm-name">Altınköşe</span></label>
             <label class="avg-firm on"><input type="checkbox" data-avg-firm="vizyon" checked><span class="avg-firm-name">Vizyon Kuyumcu</span></label>
             <label class="avg-firm on"><input type="checkbox" data-avg-firm="ahlatci" checked><span class="avg-firm-name">Ahlatcı Döviz</span></label>
@@ -3139,7 +3143,7 @@
 var USE_PROXY = location.protocol === "http:" || location.protocol === "https:";
 var DOVIZ_ORDER = ["USD","EUR","GBP","CHF","AUD","CAD","SAR","JPY","RUB","GEL","AZN"];
 var ALTIN_ORDER = ["HAS","AYAR24","AYAR22","CEYREK","YARIM","TAM","ATA","RESAT","GUMUS"];
-var ORDER = ["gunes","solis","kaptan","ilkay","sar","altinkose","vizyon","ahlatci"];
+var ORDER = ["gunes","solis","kaptan","ilkay","sar","saraltin","altinkose","vizyon","ahlatci"];
 /* Samsun içi firmalar — karşılaştırma vurgusu */
 var SAMSUN_FIRMS = {gunes:1,solis:1,kaptan:1,ilkay:1,sar:1,altinkose:1,vizyon:1};
 function isSamsunFirm(k){ return !!(SAMSUN_FIRMS && SAMSUN_FIRMS[k]); }
@@ -3149,6 +3153,7 @@ var SOURCES = {
   kaptan:    { name: "Kaptan Döviz", proxy: "/api/kaptan", direct: "https://www.kaptandoviz.com/kurlar/api.php" },
   solis:     { name: "Solis Döviz", proxy: "/api/solis", direct: "https://api.solisdoviz.com/data/5959NguJERffE_doviz" },
   sar:       { name: "SAR Döviz", proxy: "/api/sar", direct: "https://sardoviz.com/?ajax=1" },
+  saraltin:  { name: "SAR Altın", proxy: "/api/saraltin", direct: "https://newsocket.fiyatservisi.com" },
   altinkose: { name: "Altınköşe", proxy: "/api/altinkose", direct: "https://www.altinkose.com.tr/api/storefront" },
   ilkay: { name: "İlkay Döviz", proxy: "/api/ilkay", direct: "http://ilkaydoviz.sdatam.com/" },
   vizyon: { name: "Vizyon Kuyumcu", proxy: "/api/vizyon", direct: "https://fiyat.vizyonkuyumcu.com.tr/" },
@@ -3230,6 +3235,7 @@ var FIRM_LOGOS = {
   kaptan: "https://www.google.com/s2/favicons?domain=kaptandoviz.com&sz=64",
   solis: "https://solisdoviz.com.tr/assets/fav.png",
   sar: "https://www.google.com/s2/favicons?domain=sardoviz.com&sz=64",
+  saraltin: "https://fiyatservisi.com/storage/uploads/logo/01K42SS3S58J9DPVAC23NPKNW5.png",
   altinkose: "https://cdn.enabase.com/favicon/ENBS_242/favikon_1780314620_6a1d71fcd6769.png",
   ilkay: "https://www.ilkaydoviz.com/images/favicon.png",
   vizyon: "https://www.google.com/s2/favicons?domain=vizyonkuyumcu.com.tr&sz=64",
@@ -3238,7 +3244,7 @@ var FIRM_LOGOS = {
 function firmLogo(key){
   var src = (typeof FIRM_LOGOS !== "undefined") ? FIRM_LOGOS[key] : null;
   var name = (SOURCES[key] && SOURCES[key].name) || key;
-  var colors = {gunes:"#f59e0b",kaptan:"#3b82f6",solis:"#10b981",sar:"#ef4444",altinkose:"#8b5cf6",ilkay:"#06b6d4",vizyon:"#ec4899",ahlatci:"#0ea5e9"};
+  var colors = {gunes:"#f59e0b",kaptan:"#3b82f6",solis:"#10b981",sar:"#ef4444",saraltin:"#d4af37",altinkose:"#8b5cf6",ilkay:"#06b6d4",vizyon:"#ec4899",ahlatci:"#0ea5e9"};
   var bg = colors[key] || "#64748b";
   var ch = (name.charAt(0) || "?").toUpperCase();
   var safe = String(name).replace(/"/g, "&quot;");
@@ -3617,6 +3623,116 @@ function parseAltinkose(d){
     return String(a.name).localeCompare(String(b.name),"tr");
   });
   return rows;
+}
+
+function parseSarAltin(d){
+  meta.saraltin = { time: (d && d.time) ? new Date(d.time).toLocaleTimeString("tr-TR") : new Date().toLocaleTimeString("tr-TR") };
+  var list = (d && d.data) ? d.data : [];
+  return list.map(function(e){
+    return {
+      name: e.name || e.kod,
+      kod: e.kod || e.name,
+      alis: Number(e.alis),
+      satis: Number(e.satis),
+      kind: e.kind || "doviz"
+    };
+  }).filter(function(r){ return !isNaN(r.alis) && !isNaN(r.satis); });
+}
+
+var __sarAltinBootUsed = false;
+var SARALTIN_SEED = {"source":"saraltin","time":"2026-10-31T12:00:51.587Z","data":[{"name":"ONS","kod":"SA10","alis":3876.7,"satis":3877.3,"kind":"altin"},{"name":"HAS","kod":"HAS","alis":6231.78,"satis":6266.96,"kind":"altin"},{"name":"24 AYAR","kod":"AYAR24","alis":6201,"satis":6286,"kind":"altin"},{"name":"USD/KG","kod":"SA7","alis":124501,"satis":124900,"kind":"altin"},{"name":"EUR/KG","kod":"SA35","alis":111686,"satis":112377,"kind":"altin"},{"name":"GÜMÜŞ","kod":"SA36","alis":74404.51,"satis":82789.05,"kind":"altin"},{"name":"GÜMÜŞ ONS","kod":"SA37","alis":47.9,"satis":50.14,"kind":"altin"},{"name":"22 AYAR","kod":"AYAR22","alis":5668.93,"satis":5870.93,"kind":"altin"},{"name":"USD","kod":"USD","alis":49.765,"satis":49.979,"kind":"doviz"},{"name":"EUR","kod":"EUR","alis":55.298,"satis":55.704,"kind":"doviz"},{"name":"EUR/USD","kod":"SA27","alis":1.1115,"satis":1.1147,"kind":"doviz"},{"name":"GBP","kod":"GBP","alis":66.234,"satis":66.831,"kind":"doviz"},{"name":"CHF","kod":"CHF","alis":59.69,"satis":60.53,"kind":"doviz"},{"name":"AUD","kod":"AUD","alis":34.163,"satis":35.009,"kind":"doviz"},{"name":"CAD","kod":"CAD","alis":35.185,"satis":35.762,"kind":"doviz"},{"name":"SAR","kod":"SAR","alis":12.936,"satis":13.489,"kind":"doviz"},{"name":"JPY","kod":"JPY","alis":0.3066,"satis":0.3194,"kind":"doviz"},{"name":"HAS ALTIN","kod":"SA51","alis":6231.78,"satis":6266.96,"kind":"altin"},{"name":"USD/XAU","kod":"SA53","alis":124551,"satis":124900,"kind":"altin"},{"name":"EUR/XAU","kod":"SA54","alis":111736,"satis":112377,"kind":"altin"},{"name":"ONS","kod":"SA55","alis":3876.66,"satis":3877.27,"kind":"altin"}]};
+
+function mapSarAltinPayload(payload){
+  var STD = {
+    HASALTIN:["HAS","HAS","altin"], GRAMALTIN:["24 AYAR","AYAR24","altin"], "22AYAR":["22 AYAR","AYAR22","altin"],
+    USDTRY:["USD","USD","doviz"], EURTRY:["EUR","EUR","doviz"], GBPTRY:["GBP","GBP","doviz"],
+    CHFTRY:["CHF","CHF","doviz"], AUDTRY:["AUD","AUD","doviz"], CADTRY:["CAD","CAD","doviz"],
+    SARTRY:["SAR","SAR","doviz"], JPYTRY:["JPY","JPY","doviz"]
+  };
+  function num(v){
+    var t = String(v==null?"":v).trim();
+    if(!t || t==="—") return null;
+    var n = t.indexOf(",")>=0 ? Number(t.replace(/\./g,"").replace(",",".")) : Number(t);
+    return isNaN(n) ? null : n;
+  }
+  var seen = {}, rows = [];
+  ((payload && payload.categories) || []).forEach(function(cat){
+    var fx = /d[oö]viz/i.test(String(cat.name||""));
+    (cat.data||[]).forEach(function(p){
+      var slug = String(p.slug||"").toUpperCase();
+      var alis = num(p.buy), satis = num(p.sell);
+      if(alis==null && satis==null) return;
+      var spec = STD[slug];
+      var name = String(p.name||slug);
+      var kod = "SA"+(p.id||(rows.length+1));
+      var kind = fx ? "doviz" : "altin";
+      if(spec && !seen[spec[1]]){
+        name = spec[0]; kod = spec[1]; kind = spec[2]; seen[kod] = 1;
+      }
+      rows.push({ name:name, kod:kod, alis: alis==null?0:alis, satis: satis==null?0:satis, kind:kind });
+    });
+  });
+  return rows;
+}
+
+function pullSarAltinWs(){
+  return new Promise(function(resolve, reject){
+    var ws, done = false;
+    var timer = setTimeout(function(){ finish(new Error("zaman aşımı")); }, 10000);
+    function finish(err, data){
+      if(done) return;
+      done = true;
+      clearTimeout(timer);
+      try{ if(ws) ws.close(); }catch(e){}
+      if(err) reject(err); else resolve(data);
+    }
+    try { ws = new WebSocket("wss://newsocket.fiyatservisi.com/socket.io/?EIO=4&transport=websocket"); }
+    catch(e){ finish(e); return; }
+    ws.onmessage = function(ev){
+      var d = String(ev.data||"");
+      if(d.charAt(0)==="0"){ try{ ws.send("40"); }catch(e){} return; }
+      if(d.indexOf("40")===0){ try{ ws.send('42["join_tenant","saraltin"]'); }catch(e){} return; }
+      if(d==="2"){ try{ ws.send("3"); }catch(e){} return; }
+      if(d.indexOf("42")===0 && d.indexOf("products_all")!==-1){
+        try{
+          var arr = JSON.parse(d.slice(2));
+          var rows = mapSarAltinPayload(arr[1]);
+          if(!rows.length) return finish(new Error("SAR Altın boş"));
+          finish(null, { source:"saraltin", time:new Date().toISOString(), data: rows });
+        }catch(err){ finish(err); }
+      }
+    };
+    ws.onerror = function(){ finish(new Error("Bağlantı hatası")); };
+  });
+}
+
+function applySarAltin(data){
+  writeFirmCache("saraltin", data);
+  try{
+    store.saraltin = parseSarAltin(data);
+    meta.saraltin = meta.saraltin || {};
+    delete meta.saraltin.error;
+    meta.saraltin.time = new Date().toLocaleTimeString("tr-TR");
+    if(typeof renderFirmGrid==="function") renderFirmGrid();
+    if(typeof renderTicker==="function") renderTicker();
+  }catch(e){}
+  return data;
+}
+
+function fetchSarAltinFast(){
+  var live = pullSarAltinWs().then(function(data){ return applySarAltin(data); });
+  var seed = (window.__SARALTIN_BOOT && window.__SARALTIN_BOOT.data && window.__SARALTIN_BOOT.data.length) ? window.__SARALTIN_BOOT : SARALTIN_SEED;
+  if(!__sarAltinBootUsed && seed && seed.data && seed.data.length){
+    __sarAltinBootUsed = true;
+    live.catch(function(){});
+    return Promise.resolve(seed);
+  }
+  return live.catch(function(){
+    var c = readFirmCache("saraltin", 6*60*60*1000);
+    if(c && c.data && c.data.length) return c;
+    if(seed && seed.data && seed.data.length) return seed;
+    throw new Error("Bağlantı hatası");
+  });
 }
 
 function parseSar(d){
@@ -4396,6 +4512,8 @@ function buildBestPriceMap(){
 
 function normalizeProductId(r){
   var kodU = String(r.kod||"").trim().toUpperCase();
+  if(kodU==="GUMUSKG"||kodU==="USDKG"||kodU==="EURKG"||kodU==="ONSALTIN"||kodU==="EURUSD"||kodU==="GUMONS") return kodU;
+  if(/^SA\d+$/.test(kodU)) return kodU;
   /* Ahlatcı vb. kodlar — isimden önce kesin eşle */
   if(kodU==="XAG" || kodU==="AG") return "GUMUS";
   if(kodU==="XAU" || kodU==="AU") return "HAS";
@@ -4636,7 +4754,7 @@ function fillFirmOrderBox(){
   } catch(e){ list = []; }
   if(!list.length && typeof ORDER !== "undefined") list = ORDER.slice();
   if(!list.length && typeof SOURCES !== "undefined") list = Object.keys(SOURCES);
-  if(!list.length) list = ["gunes","solis","kaptan","ilkay","sar","altinkose","vizyon","ahlatci"];
+  if(!list.length) list = ["gunes","solis","kaptan","ilkay","sar","saraltin","altinkose","vizyon","ahlatci"];
 
   /* Eksik firmaları ekle (ORDER'daki herkes görünsün) */
   try {
@@ -4829,7 +4947,7 @@ function fillAvgFirmBox(){
   var list = [];
   try { if(typeof getFirmOrder==="function") list = getFirmOrder() || []; } catch(e){}
   if(!list.length && typeof ORDER!=="undefined") list = ORDER.slice();
-  if(!list.length) list = ["gunes","solis","kaptan","ilkay","sar","altinkose","vizyon","ahlatci"];
+  if(!list.length) list = ["gunes","solis","kaptan","ilkay","sar","saraltin","altinkose","vizyon","ahlatci"];
   (ORDER||[]).forEach(function(k){ if(list.indexOf(k)<0) list.push(k); });
   box.innerHTML = "";
   list.forEach(function(k){
@@ -6803,7 +6921,7 @@ function sameOriginApi(){
   try {
     var host = (location.host||"").toLowerCase();
     if(!host || location.protocol==="file:") return false;
-    return /grok-sandbox\.com$|localhost|127\.0\.0\.1|workers\.dev$|trycloudflare\.com$|\.netlify\.app$/i.test(host);
+    return /grok-sandbox\.com$|grok\.me$|localhost|127\.0\.0\.1|workers\.dev$|trycloudflare\.com$|\.netlify\.app$/i.test(host);
   } catch(e){ return false; }
 }
 function raceAny(jobs){
@@ -7024,6 +7142,7 @@ function fetchSource(key){
   if(key==="vizyon") return fetchVizyonFast();
   if(key==="altinkose") return fetchAltinkoseFast();
   if(key==="sar") return fetchSarFast();
+  if(key==="saraltin") return fetchSarAltinFast();
   var base = (typeof getProxyBase === "function" ? getProxyBase() : "") || "";
   var tries = [];
 
@@ -7516,7 +7635,7 @@ function loadAll(){
   try{ var _br=document.getElementById("btnRefresh"); if(_br) _br.disabled=true; }catch(e){}
   try{ var _dot=document.getElementById("dot"); if(_dot) _dot.className="dot"; }catch(e){}
   /* Son bilinen fiyat: Ahlatcı, İlkay, Altınköşe, Vizyon */
-  ["ahlatci","ilkay","altinkose","vizyon","sar"].forEach(function(key){
+  ["ahlatci","ilkay","altinkose","vizyon","sar","saraltin"].forEach(function(key){
     try {
       if(store[key] && store[key].length) return;
       var raw = JSON.parse(localStorage.getItem("radar_"+key+"_cache_v1")||"null");
@@ -7576,6 +7695,7 @@ function loadAll(){
     if(key==="solis") return parseSolis(d);
     if(key==="altinkose") return parseAltinkose(d);
     if(key==="sar") return parseSar(d);
+    if(key==="saraltin") return parseSarAltin(d);
     if(key==="ilkay") return parseIlkay(d);
     if(key==="vizyon") return parseVizyon(d);
     if(key==="ahlatci"){
@@ -7600,7 +7720,7 @@ function loadAll(){
       if(e&&e.name==="AbortError") msg="Zaman aşımı";
       meta[key]=meta[key]||{};
       /* Ahlatcı: hata olsa bile cache/store koru */
-      if((key==="ahlatci" || key==="ilkay" || key==="altinkose" || key==="vizyon" || key==="sar") && store[key] && store[key].length){
+      if((key==="ahlatci" || key==="ilkay" || key==="altinkose" || key==="vizyon" || key==="sar" || key==="saraltin") && store[key] && store[key].length){
         meta[key].error = null;
         meta[key].time = (meta[key].time||"") + " · önbellek";
       } else {
