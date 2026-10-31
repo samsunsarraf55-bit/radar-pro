@@ -6688,7 +6688,7 @@ function fetchAltinkoseFast(){
 function fetchVizyonFast(){
   var ALLOW = ["KULCEALTIN","AYAR22","CEYREK_YENI","YARIM_YENI","TEK_YENI","ATA_YENI"];
   function loadAdj(){
-    if(window.__vizyonAdj && Date.now()-window.__vizyonAdj.at < 30000) return Promise.resolve(window.__vizyonAdj.adj);
+    if(window.__vizyonAdj && Date.now()-window.__vizyonAdj.at < 5000) return Promise.resolve(window.__vizyonAdj.adj);
     var page = "https://fiyat.vizyonkuyumcu.com.tr/";
     function fromText(text){
       var rawText = String(text||"");
