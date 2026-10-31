@@ -3338,6 +3338,27 @@ function applyTheme(){
   if(!meta){ meta=document.createElement("meta"); meta.name="theme-color"; document.head.appendChild(meta); }
   meta.content = t === "dark" ? "#0b0f14" : "#f0f2f5";
 }
+(function bindHeaderTheme(){
+  var btn = document.getElementById("btnTheme");
+  if(!btn || btn.dataset.themeBound) return;
+  btn.dataset.themeBound = "1";
+  btn.style.touchAction = "manipulation";
+  var lock = 0;
+  function go(ev){
+    var now = Date.now();
+    if(now < lock){
+      if(ev){ try{ ev.preventDefault(); ev.stopPropagation(); }catch(e){} }
+      return;
+    }
+    lock = now + 700;
+    if(ev){ try{ ev.preventDefault(); ev.stopPropagation(); }catch(e){} }
+    settings.theme = settings.theme === "dark" ? "light" : "dark";
+    try{ saveSettings(); }catch(e){}
+    applyTheme();
+  }
+  btn.addEventListener("pointerup", go);
+  btn.addEventListener("click", go);
+})();
 
 /* FETCH */
 function fetchOnce(url, opts, ms){
@@ -6762,11 +6783,11 @@ function fetchVizyonFast(){
       ws.onerror = function(){ fin(new Error("Vizyon bağlantı hatası")); };
     });
   }
-  var jobs = [
-    function(){ return loadAdj().then(viaWs); }
-  ];
-  if(sameOriginApi()) jobs.push(function(){ return fetchOnce("/api/vizyon", null, 12000); });
-  return raceAny(jobs).then(function(data){
+  var jobs = [function(){ return loadAdj().then(viaWs); }];
+  return raceAny(jobs).catch(function(){
+    if(sameOriginApi()) return fetchOnce("/api/vizyon", null, 12000);
+    throw new Error("Vizyon fiyat yok");
+  }).then(function(data){
     writeFirmCache("vizyon", data);
     return data;
   }).catch(function(e){
@@ -8054,35 +8075,12 @@ setTimeout(function(){
   try{ recordHistory = window.recordHistory; }catch(e){}
 }, 0);
 
-/* Tema düğmesi — document delegation (garanti) */
+/* Tema düğmesi — ikinci dokunuşu yut, gece/gündüz bir kez değişsin */
 window.__radarToggleTheme = function(){
-  try {
-    if(typeof settings === "undefined") return;
-    settings.theme = (settings.theme === "dark") ? "light" : "dark";
-    try{ saveSettings(); }catch(e){}
-    try{ applyTheme(); }catch(e){}
-    try{ if(typeof markSettingsDirty==="function") markSettingsDirty(); }catch(e){}
-  } catch(e){ console.warn("toggleTheme", e); }
+  var btn = document.getElementById("btnTheme");
+  if(btn) btn.click();
 };
 (function(){
-  var lastAt = 0;
-  function onThemeEvent(ev){
-    var t = ev.target;
-    if(!t) return;
-    var btn = (t.id === "btnTheme") ? t : (t.closest ? t.closest("#btnTheme") : null);
-    if(!btn) return;
-    /* touch + click çiftini engelle */
-    var now = Date.now();
-    if(now - lastAt < 400){
-      try{ ev.preventDefault(); }catch(e){}
-      return;
-    }
-    lastAt = now;
-    try{ ev.preventDefault(); ev.stopPropagation(); }catch(e){}
-    window.__radarToggleTheme();
-  }
-  document.addEventListener("click", onThemeEvent, true);
-  document.addEventListener("touchend", onThemeEvent, {passive:false, capture:true});
   var btl = document.getElementById("btnThemeLight");
   var btd = document.getElementById("btnThemeDark");
   if(btl) btl.onclick = function(){ settings.theme="light"; saveSettings(); applyTheme(); };
