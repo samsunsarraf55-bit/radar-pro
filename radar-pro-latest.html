@@ -1508,8 +1508,8 @@
 
     /* Firma sırası — kart tabanlı */
     #firmOrderBox.firm-order-cards{
-      display:grid!important;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-      gap:10px;border:none!important;background:transparent!important;max-height:none!important;overflow:visible!important
+      display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;
+      gap:8px;width:100%;border:none!important;background:transparent!important;max-height:none!important;overflow:visible!important
     }
     #firmOrderBox .fo-card{
       display:flex;flex-direction:column;align-items:center;gap:8px;
@@ -1701,12 +1701,14 @@
     }
 
   
-    #firmOrderCard{grid-column:1 / -1}
+    #firmOrderCard, #avgFirmCard{grid-column:1 / -1}
     #firmOrderBox.firm-order-cards,
-    .firm-order-cards{
-      display:grid!important;
-      grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
-      gap:10px;
+    #avgFirmBox.avg-firm-cards{
+      display:flex!important;
+      flex-direction:column!important;
+      flex-wrap:nowrap!important;
+      gap:8px;
+      width:100%;
       margin-top:8px;
     }
     .fo-card{
@@ -1718,6 +1720,23 @@
     .fo-card.dragging{opacity:.5}
     .fo-card .fo-name{font-size:12px;font-weight:700;text-align:center}
     .fo-card .fo-handle{color:var(--muted);font-size:12px}
+    .avg-firm-cards{
+      display:flex!important;
+      flex-direction:column!important;
+      gap:8px;
+      margin-top:8px;
+      width:100%;
+    }
+    .avg-firm{
+      display:flex;align-items:center;gap:8px;
+      padding:8px 10px;border-radius:12px;border:1px solid var(--border);
+      background:var(--card);cursor:pointer;user-select:none;
+    }
+    .avg-firm.on{border-color:var(--cyan);box-shadow:inset 0 0 0 1px var(--cyan)}
+    .avg-firm input{width:16px;height:16px;accent-color:var(--cyan);flex:0 0 auto}
+    .avg-firm-logo{width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+    .avg-firm-logo img,.avg-firm-logo .firm-logo{width:22px;height:22px}
+    .avg-firm-name{font-size:12px;font-weight:700;line-height:1.2}
     @media (max-width:640px){
       .firm-order-cards{grid-template-columns:repeat(2,1fr)!important}
     }
@@ -2717,24 +2736,42 @@
     }
 
   
-    #firmOrderBox.firm-order-cards{
-      display:flex!important;
-      flex-wrap:wrap!important;
-      gap:8px!important;
-      min-height:48px;
-      padding:8px 0;
-    }
-    #firmOrderBox .fo-card{
+    #firmOrderBox.firm-order-cards,
+    #avgFirmBox.avg-firm-cards{
       display:flex!important;
       flex-direction:column!important;
+      flex-wrap:nowrap!important;
+      gap:8px!important;
+      width:100%!important;
+      min-height:0!important;
+      max-height:none!important;
+      overflow:visible!important;
+    }
+    #firmOrderBox .fo-card,
+    #avgFirmBox .avg-firm{
+      display:flex!important;
+      flex-direction:row!important;
       align-items:center!important;
-      gap:4px!important;
-      padding:10px 12px!important;
+      gap:8px!important;
+      width:100%!important;
+      min-height:44px!important;
+      box-sizing:border-box!important;
+      position:relative!important;
+      opacity:1!important;
+      visibility:visible!important;
+      color:var(--text)!important;
+      background:var(--bg)!important;
       border:1px solid var(--border)!important;
       border-radius:12px!important;
-      background:var(--card)!important;
-      min-width:88px!important;
-      cursor:grab!important;
+      padding:8px 10px!important;
+    }
+    #firmOrderBox .fo-name,
+    #avgFirmBox .avg-firm-name{
+      display:block!important;
+      color:var(--text)!important;
+      font-size:13px!important;
+      font-weight:700!important;
+      line-height:1.3!important;
     }
 
   
@@ -2879,10 +2916,38 @@
         <div class="set-card" id="firmOrderCard">
           <h3>Genel Ayarlar · Firma sütun sırası</h3>
           <p class="set-desc">Ana sayfadaki firma sütunlarının sırası. Oklarla yukarı-aşağı alın veya kartı sürükleyin, sonra kaydedin.</p>
-          <div id="firmOrderBox" class="firm-order-cards"></div>
+          <div id="firmOrderBox" class="firm-order-cards">
+            <div class="fo-card" data-firm="gunes" draggable="true"><span class="fo-name">Güneş Kuyumculuk</span></div>
+            <div class="fo-card" data-firm="solis" draggable="true"><span class="fo-name">Solis Döviz</span></div>
+            <div class="fo-card" data-firm="kaptan" draggable="true"><span class="fo-name">Kaptan Döviz</span></div>
+            <div class="fo-card" data-firm="ilkay" draggable="true"><span class="fo-name">İlkay Döviz</span></div>
+            <div class="fo-card" data-firm="sar" draggable="true"><span class="fo-name">SAR Döviz</span></div>
+            <div class="fo-card" data-firm="altinkose" draggable="true"><span class="fo-name">Altınköşe</span></div>
+            <div class="fo-card" data-firm="vizyon" draggable="true"><span class="fo-name">Vizyon Kuyumcu</span></div>
+            <div class="fo-card" data-firm="ahlatci" draggable="true"><span class="fo-name">Ahlatcı Döviz</span></div>
+          </div>
           <div class="set-actions" style="margin-top:12px">
             <button type="button" class="btn-primary" id="firmOrderSave">Sırayı kaydet</button>
             <button type="button" class="btn-ghost" id="firmOrderReset">Varsayılana dön</button>
+          </div>
+        </div>
+
+        <div class="set-card" id="avgFirmCard">
+          <h3>Genel Ayarlar · Piyasa ortalaması</h3>
+          <p class="set-desc">Ana sayfanın en üstündeki ortalama fiyatlara hangi firmalar dahil olsun. İşaret değişince hemen uygulanır.</p>
+          <div id="avgFirmBox" class="avg-firm-cards">
+            <label class="avg-firm on"><input type="checkbox" data-avg-firm="gunes" checked><span class="avg-firm-name">Güneş Kuyumculuk</span></label>
+            <label class="avg-firm on"><input type="checkbox" data-avg-firm="solis" checked><span class="avg-firm-name">Solis Döviz</span></label>
+            <label class="avg-firm on"><input type="checkbox" data-avg-firm="kaptan" checked><span class="avg-firm-name">Kaptan Döviz</span></label>
+            <label class="avg-firm on"><input type="checkbox" data-avg-firm="ilkay" checked><span class="avg-firm-name">İlkay Döviz</span></label>
+            <label class="avg-firm on"><input type="checkbox" data-avg-firm="sar" checked><span class="avg-firm-name">SAR Döviz</span></label>
+            <label class="avg-firm on"><input type="checkbox" data-avg-firm="altinkose" checked><span class="avg-firm-name">Altınköşe</span></label>
+            <label class="avg-firm on"><input type="checkbox" data-avg-firm="vizyon" checked><span class="avg-firm-name">Vizyon Kuyumcu</span></label>
+            <label class="avg-firm on"><input type="checkbox" data-avg-firm="ahlatci" checked><span class="avg-firm-name">Ahlatcı Döviz</span></label>
+          </div>
+          <div class="set-actions" style="margin-top:12px">
+            <button type="button" class="btn-ghost" id="avgFirmAll">Tümünü seç</button>
+            <button type="button" class="btn-ghost" id="avgFirmNone">Tümünü kaldır</button>
           </div>
         </div>
 
@@ -4527,6 +4592,9 @@ function bindFirmOrderDrag(box){
   box.addEventListener("dragend", function(ev){
     var t = ev.target.closest(".fo-card, .fs-item");
     if(t) t.classList.remove("dragging");
+    if(dragEl && dragEl.classList && dragEl.classList.contains("fo-card")){
+      try{ if(typeof markSettingsDirty==="function") markSettingsDirty(); }catch(e){}
+    }
     dragEl = null;
   });
   box.addEventListener("dragover", function(ev){
@@ -4590,7 +4658,7 @@ function fillFirmOrderBox(){
     row.innerHTML =
       '<span class="fo-handle" style="color:#94a3b8;font-size:12px">☰</span>'+
       '<div class="fo-logo" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center">'+logo+'</div>'+
-      '<div class="fo-name" style="font-size:12px;font-weight:700;text-align:center;line-height:1.2;max-width:110px">'+nm+'</div>'+
+      '<div class="fo-name" style="font-size:13px;font-weight:700;text-align:left;line-height:1.3;color:inherit">'+nm+'</div>'+
       '<div class="fo-idx" style="font-size:10px;color:#94a3b8">#'+(idx+1)+'</div>'+
       '<div class="fo-move" style="display:flex;gap:4px">'+
         '<button type="button" class="btn-ghost fo-up" style="padding:2px 8px;min-width:28px" title="Yukarı">↑</button>'+
@@ -4625,6 +4693,7 @@ function fillFirmOrderBox(){
       if(down && card.nextElementSibling) box.insertBefore(card.nextElementSibling, card);
       var n = 1;
       box.querySelectorAll(".fo-idx").forEach(function(el){ el.textContent = "#"+(n++); });
+      try{ if(typeof markSettingsDirty==="function") markSettingsDirty(); }catch(e){}
     });
   }
 
@@ -4660,6 +4729,66 @@ function fillFirmOrderBox(){
 }
 
 
+function firmInAvg(key){
+  var sel = settings && settings.avgFirms;
+  if(sel == null) return true;
+  return sel.indexOf(key) >= 0;
+}
+function saveAvgFirms(list){
+  if(!settings) return;
+  settings.avgFirms = list.slice();
+  try{ saveSettings(); }catch(e){}
+  try{ if(typeof markSettingsDirty==="function") markSettingsDirty(); }catch(e){}
+  try{ if(typeof renderTicker==="function") renderTicker(); }catch(e){}
+}
+function fillAvgFirmBox(){
+  var box = document.getElementById("avgFirmBox");
+  if(!box) return;
+  var list = [];
+  try { if(typeof getFirmOrder==="function") list = getFirmOrder() || []; } catch(e){}
+  if(!list.length && typeof ORDER!=="undefined") list = ORDER.slice();
+  if(!list.length) list = ["gunes","solis","kaptan","ilkay","sar","altinkose","vizyon","ahlatci"];
+  (ORDER||[]).forEach(function(k){ if(list.indexOf(k)<0) list.push(k); });
+  box.innerHTML = "";
+  list.forEach(function(k){
+    if(!k) return;
+    var on = firmInAvg(k);
+    var nm = (SOURCES[k] && SOURCES[k].name) || k;
+    var logo = "";
+    try { if(typeof firmLogo==="function") logo = firmLogo(k) || ""; } catch(e){}
+    var card = document.createElement("label");
+    card.className = "avg-firm" + (on ? " on" : "");
+    card.innerHTML =
+      '<input type="checkbox" data-avg-firm="'+k+'"'+(on?' checked':'')+'>'+
+      '<span class="avg-firm-logo">'+(logo||"")+'</span>'+
+      '<span class="avg-firm-name">'+nm+'</span>';
+    box.appendChild(card);
+  });
+  function current(){
+    var arr = [];
+    box.querySelectorAll("input[data-avg-firm]").forEach(function(inp){
+      if(inp.checked) arr.push(inp.getAttribute("data-avg-firm"));
+    });
+    return arr;
+  }
+  box.onchange = function(ev){
+    var inp = ev.target;
+    if(!inp || !inp.getAttribute || !inp.getAttribute("data-avg-firm")) return;
+    var lab = inp.closest(".avg-firm");
+    if(lab) lab.classList.toggle("on", inp.checked);
+    saveAvgFirms(current());
+  };
+  var all = document.getElementById("avgFirmAll");
+  var none = document.getElementById("avgFirmNone");
+  if(all) all.onclick = function(){
+    box.querySelectorAll("input[data-avg-firm]").forEach(function(inp){ inp.checked = true; var lab=inp.closest(".avg-firm"); if(lab) lab.classList.add("on"); });
+    saveAvgFirms(current());
+  };
+  if(none) none.onclick = function(){
+    box.querySelectorAll("input[data-avg-firm]").forEach(function(inp){ inp.checked = false; var lab=inp.closest(".avg-firm"); if(lab) lab.classList.remove("on"); });
+    saveAvgFirms(current());
+  };
+}
 function bindFsDrag(box){
   if(!box) return;
   /* her açılışta yeniden bağla */
@@ -5132,6 +5261,7 @@ function renderTicker(){
   keys.forEach(function(item){
     var alis = [], satis = [], sources = [];
     ORDER.forEach(function(firm){
+      if(!firmInAvg(firm)) return;
       (store[firm]||[]).forEach(function(r){
         var nid = (typeof normalizeProductId === "function") ? normalizeProductId(r) : rowKey(r);
         if(nid !== item.id) return;
@@ -5204,6 +5334,7 @@ function renderTicker(){
     if(trygP==null){
       var hasA=[];
       ORDER.forEach(function(firm){
+        if(!firmInAvg(firm)) return;
         (store[firm]||[]).forEach(function(r){
           var nid = (typeof normalizeProductId==="function")?normalizeProductId(r):"";
           if(nid==="HAS" && r.alis!=null&&!isNaN(+r.alis)) hasA.push(+r.alis);
@@ -5214,6 +5345,7 @@ function renderTicker(){
     if(xuP==null && trygP!=null){
       var usdA=[];
       ORDER.forEach(function(firm){
+        if(!firmInAvg(firm)) return;
         (store[firm]||[]).forEach(function(r){
           var nid = (typeof normalizeProductId==="function")?normalizeProductId(r):"";
           if(nid==="USD" && r.alis!=null&&!isNaN(+r.alis)) usdA.push(+r.alis);
@@ -7895,9 +8027,13 @@ function openSettingsModal(){
   page.style.display = "block";
   page.classList.add("active");
   window.__settingsSnapshot = snapshotSettings();
+  try{ window.__firmOrderSnapshot = JSON.stringify(typeof getFirmOrder==="function" ? getFirmOrder() : []); }catch(e){ window.__firmOrderSnapshot = "[]"; }
   window.__settingsDirty = false;
   bg.classList.add("open");
-  function _fillFO(){ try{ if(typeof fillFirmOrderBox==="function") fillFirmOrderBox(); }catch(e){ console.warn("fillFirmOrderBox", e); } }
+  function _fillFO(){
+    try{ if(typeof fillFirmOrderBox==="function") fillFirmOrderBox(); }catch(e){ console.warn("fillFirmOrderBox", e); }
+    try{ if(typeof fillAvgFirmBox==="function") fillAvgFirmBox(); }catch(e){ console.warn("fillAvgFirmBox", e); }
+  }
   _fillFO();
   setTimeout(_fillFO, 30);
   setTimeout(_fillFO, 150);
@@ -7905,24 +8041,89 @@ function openSettingsModal(){
 }
 
 
+function readFirmOrderBox(){
+  var arr = [];
+  var box = document.getElementById("firmOrderBox");
+  if(!box) return arr;
+  box.querySelectorAll(".fo-card[data-firm]").forEach(function(it){
+    if(it.dataset.firm) arr.push(it.dataset.firm);
+  });
+  return arr;
+}
+function settingsChanged(){
+  if(window.__settingsDirty) return true;
+  try{
+    if(window.__settingsSnapshot && snapshotSettings() !== window.__settingsSnapshot) return true;
+    if(window.__firmOrderSnapshot && JSON.stringify(readFirmOrderBox()) !== window.__firmOrderSnapshot) return true;
+  }catch(e){}
+  return false;
+}
+function restoreSettingsSnapshot(){
+  try{
+    if(window.__settingsSnapshot){
+      settings = JSON.parse(window.__settingsSnapshot);
+      applyTheme();
+      saveSettings();
+      try{ if(typeof renderTicker==="function") renderTicker(); }catch(e){}
+    }
+  }catch(e){}
+  try{
+    if(window.__firmOrderSnapshot && typeof saveFirmOrderPref==="function"){
+      saveFirmOrderPref(JSON.parse(window.__firmOrderSnapshot));
+      if(typeof fillFirmOrderBox==="function") fillFirmOrderBox();
+      var g = document.getElementById("firmGrid");
+      if(g){ g.innerHTML = ""; delete g.dataset.filter; }
+      if(typeof renderFirmGrid==="function") renderFirmGrid();
+    }
+  }catch(e){}
+  try{ if(typeof fillAvgFirmBox==="function") fillAvgFirmBox(); }catch(e){}
+  window.__settingsDirty = false;
+}
+function commitSettings(){
+  try{
+    var st = document.getElementById("setTheme");
+    if(st) settings.theme = st.value === "dark" ? "dark" : "light";
+    var sd = document.getElementById("setDensity");
+    if(sd) settings.density = sd.value || "normal";
+    var sp = document.getElementById("setPoll");
+    if(sp) settings.poll = Math.max(3, Math.min(60, +sp.value || 8));
+    var sa = document.getElementById("setArbMin");
+    if(sa) settings.arbMin = Math.max(0.0001, +sa.value || 0.0001);
+    var ss = document.getElementById("setStartPage");
+    if(ss) settings.startPage = ss.value || "home";
+    var sdec = document.getElementById("setDecimals");
+    if(sdec) settings.decimals = +sdec.value || 2;
+    var sam = document.getElementById("setArrowMs");
+    if(sam) settings.arrowMs = Math.max(400, Math.min(5000, +sam.value || 1200));
+  }catch(e){}
+  try{ saveSettings(); }catch(e){}
+  try{ applyTheme(); document.body.setAttribute("data-density", settings.density || "normal"); }catch(e){}
+  try{ if(typeof startPoll==="function") startPoll(); }catch(e){}
+  var order = readFirmOrderBox();
+  if(order.length && typeof saveFirmOrderPref==="function"){
+    saveFirmOrderPref(order);
+    try{
+      var g = document.getElementById("firmGrid");
+      if(g){ g.innerHTML = ""; delete g.dataset.filter; }
+      if(typeof renderFirmGrid==="function") renderFirmGrid();
+      if(typeof renderCompare==="function") renderCompare();
+      if(typeof renderArb==="function") renderArb();
+    }catch(e){}
+  }
+  try{ if(typeof renderTicker==="function") renderTicker(); }catch(e){}
+  try{ if(typeof pushCloudData==="function") pushCloudData(); }catch(e){}
+  window.__settingsDirty = false;
+  window.__settingsSnapshot = snapshotSettings();
+  try{ window.__firmOrderSnapshot = JSON.stringify(order.length ? order : (typeof getFirmOrder==="function" ? getFirmOrder() : [])); }catch(e){}
+}
+
 function closeSettingsModal(force){
   var bg = document.getElementById("settingsModalBg");
   if(!bg) return;
-  if(!force && window.__settingsDirty){
+  if(!force && settingsChanged()){
     var ans = confirm("Ayarlarda değişiklik var. Kaydedilsin mi?");
-    if(ans){
-      try{ saveSettings(); if(typeof pushCloudData==="function") pushCloudData(); }catch(e){}
-      window.__settingsDirty = false;
-    } else {
-      try{
-        if(window.__settingsSnapshot){
-          settings = JSON.parse(window.__settingsSnapshot);
-          applyTheme();
-          saveSettings();
-        }
-      }catch(e){}
-      window.__settingsDirty = false;
-    }
+    if(ans) commitSettings();
+    else restoreSettingsSnapshot();
   }
   var page = document.getElementById("page-settings");
   var park = document.getElementById("settingsPark");
@@ -7974,20 +8175,34 @@ document.addEventListener("click", function(ev){
   }
 }, true);
 
-document.getElementById("settingsModalClose") && document.getElementById("settingsModalClose").addEventListener("click", function(){ closeSettingsModal(false); });
-document.getElementById("settingsModalDiscard") && document.getElementById("settingsModalDiscard").addEventListener("click", function(){
-  try{ if(window.__settingsSnapshot){ settings=JSON.parse(window.__settingsSnapshot); applyTheme(); } }catch(e){}
-  window.__settingsDirty = false;
-  closeSettingsModal(true);
-});
-document.getElementById("settingsModalSave") && document.getElementById("settingsModalSave").addEventListener("click", function(){
-  try{ saveSettings(); if(typeof pushCloudData==="function") pushCloudData(); }catch(e){}
-  window.__settingsDirty = false;
-  window.__settingsSnapshot = snapshotSettings();
-  try{ if(typeof toast==="function") toast("Ayarlar kaydedildi"); else alert("Ayarlar kaydedildi"); }catch(e){}
-  closeSettingsModal(true);
-});
-document.getElementById("settingsModalBg") && document.getElementById("settingsModalBg").addEventListener("click", function(e){ if(e.target===this) closeSettingsModal(false); });
+document.addEventListener("click", function(ev){
+  var t = ev.target && ev.target.closest ? ev.target.closest("#settingsModalSave, #settingsModalClose, #settingsModalDiscard") : null;
+  if(!t) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  if(t.id === "settingsModalSave"){
+    commitSettings();
+    try{
+      var toastEl = document.getElementById("toast");
+      var toastBody = document.getElementById("toastBody");
+      if(toastEl && toastBody){
+        var h = toastEl.querySelector("h4");
+        if(h) h.textContent = "Ayarlar";
+        toastBody.textContent = "Kaydedildi";
+        toastEl.classList.add("show");
+        setTimeout(function(){ toastEl.classList.remove("show"); }, 1600);
+      }
+    }catch(e){}
+    closeSettingsModal(true);
+    return;
+  }
+  if(t.id === "settingsModalDiscard"){
+    restoreSettingsSnapshot();
+    closeSettingsModal(true);
+    return;
+  }
+  closeSettingsModal(false);
+}, true);
 document.getElementById("aiModalClose") && document.getElementById("aiModalClose").addEventListener("click", closeAiModal);
 document.getElementById("aiModalBg") && document.getElementById("aiModalBg").addEventListener("click", function(e){ if(e.target===this) closeAiModal(); });
 
@@ -8151,7 +8366,7 @@ window.__radarToggleTheme = function(){
       if(typeof closeAiModal === "function") closeAiModal();
       return;
     }
-    if(t.id === "settingsModalClose" || t.id === "settingsModalDiscard"){
+    if(t.id === "settingsModalSave" || t.id === "settingsModalDiscard" || t.id === "settingsModalClose"){
       return;
     }
     if(t.id === "histClose"){
