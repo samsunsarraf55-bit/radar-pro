@@ -13,7 +13,6 @@ const CORS_HEADERS = {
 const HTML_URLS = [
   "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/altin-fiyatlari%20(1).html",
   "https://cdn.jsdelivr.net/gh/samsunsarraf55-bit/radar-pro@main/altin-fiyatlari%20(1).html",
-  "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/index.html",
   "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/radar-pro-latest.html",
   "https://raw.githubusercontent.com/samsunsarraf55-bit/radar-pro/main/altin-fiyatlari.html",
 ];
@@ -33,12 +32,13 @@ const SOURCES = {
   altinkose: {
     url: "https://www.altinkose.com.tr/api/storefront",
     method: "POST",
-    body: JSON.stringify({ islem: "kurlar" }),
+    body: JSON.stringify({ islem: "storefront_kurlar", canli: "1", domain_key: "altinkose", tum: "1" }),
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
       Origin: "https://www.altinkose.com.tr",
       Referer: "https://www.altinkose.com.tr/canli-altin-fiyatlari",
+      "X-Domain-Key": "altinkose",
     },
   },
   ilkay: {
@@ -48,14 +48,6 @@ const SOURCES = {
   },
 };
 
-const VIZYON_ADJ = {
-  KULCEALTIN: { alis: 0, satis: 5 },
-  AYAR22: { alis: 15, satis: -20 },
-  CEYREK_YENI: { alis: -240, satis: -120 },
-  YARIM_YENI: { alis: -420, satis: -310 },
-  TEK_YENI: { alis: -715, satis: -560 },
-  ATA_YENI: { alis: -100, satis: -275 },
-};
 const VIZYON_ALLOW = ["KULCEALTIN", "AYAR22", "CEYREK_YENI", "YARIM_YENI", "TEK_YENI", "ATA_YENI"];
 
 function json(data, status) {
@@ -107,6 +99,21 @@ async function fetchSource(key) {
 }
 
 async function fetchVizyon() {
+  var page = await fetch("https://fiyat.vizyonkuyumcu.com.tr/", {
+    headers: { "User-Agent": "Mozilla/5.0", Accept: "text/html" },
+  });
+  var html = await page.text();
+  var found = html.match(/priceAdjustments\s*=\s*(\{[\s\S]*?\});/);
+  if (!found) throw new Error("vizyon ayar yok");
+  var raw = JSON.parse(found[1]);
+  var adj = {};
+  VIZYON_ALLOW.forEach(function (code) {
+    var row = raw[code] || {};
+    adj[code] = {
+      alis: parseFloat(row.alis_adjustment) || 0,
+      satis: parseFloat(row.satis_adjustment) || 0,
+    };
+  });
   return new Promise(function (resolve, reject) {
     var url = "wss://socket.haremaltin.com/socket.io/?EIO=4&transport=websocket";
     var settled = false, ws;
@@ -127,19 +134,17 @@ async function fetchVizyon() {
           var payload = JSON.parse(d.slice(2));
           var data = (payload[1] && payload[1].data) || payload[1] || {};
           var rows = [];
-          Object.keys(data).forEach(function (code) {
-            if (VIZYON_ALLOW.indexOf(code) < 0) return;
-            var e = data[code] || {};
+          VIZYON_ALLOW.forEach(function (code) {
+            var e = data[code];
+            if (!e) return;
             var alis = parseFloat(String(e.alis).replace(",", "."));
             var satis = parseFloat(String(e.satis).replace(",", "."));
             if (isNaN(alis) || isNaN(satis)) return;
-            var adj = VIZYON_ADJ[code];
-            if (adj) { alis += Number(adj.alis) || 0; satis += Number(adj.satis) || 0; }
+            var a = adj[code] || { alis: 0, satis: 0 };
+            alis = Math.round((alis + a.alis) * 100) / 100;
+            satis = Math.round((satis + a.satis) * 100) / 100;
             if (alis <= 0 && satis <= 0) return;
             rows.push({ code: code, name: code, alis: alis, satis: satis });
-          });
-          rows.sort(function (a, b) {
-            return VIZYON_ALLOW.indexOf(a.code) - VIZYON_ALLOW.indexOf(b.code);
           });
           if (!settled) {
             settled = true;
@@ -162,8 +167,8 @@ function injectFmtHelpers(body) {
   if (!body) return body;
   if (body.indexOf("function fmtGold") < 0) {
     var patch =
-      "function fmtGold(n){if(n==null||isNaN(Number(n)))return\"\\u2014\";return Number(n).toLocaleString(\"tr-TR\",{minimumFractionDigits:2,maximumFractionDigits:2});}\\n" +
-      "function fmtFx(n){if(n==null||isNaN(Number(n)))return\"\\u2014\";var x=Number(n);var third=Math.round(Math.abs(x)*1000)%10;var d=(third===0)?2:3;return x.toLocaleString(\"tr-TR\",{minimumFractionDigits:d,maximumFractionDigits:d});}\\n";
+      "function fmtGold(n){if(n==null||isNaN(Number(n)))return\"\u2014\";return Number(n).toLocaleString(\"tr-TR\",{minimumFractionDigits:2,maximumFractionDigits:2});}\n" +
+      "function fmtFx(n){if(n==null||isNaN(Number(n)))return\"\u2014\";var x=Number(n);var third=Math.round(Math.abs(x)*1000)%10;var d=(third===0)?2:3;return x.toLocaleString(\"tr-TR\",{minimumFractionDigits:d,maximumFractionDigits:d});}\n";
     if (body.indexOf("function fmt(n,d)") >= 0) {
       body = body.replace("function fmt(n,d)", patch + "function fmt(n,d)");
     } else if (body.indexOf("function rowKey") >= 0) {
@@ -172,6 +177,7 @@ function injectFmtHelpers(body) {
       body = body.replace("</script>", patch + "</script>");
     }
   }
+  /* Firma detayı modalına logo */
   if (body.indexOf("firmHead(d.maxKey") < 0 && body.indexOf("function openSumDetail") >= 0) {
     var oldDetail =
       "title.textContent = d.label + \" — firma detayı\";\n" +
